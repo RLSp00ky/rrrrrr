@@ -1174,8 +1174,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                     
                     if (result) {
                         console.log("✅ Friend request sent:", result);
-                        addFriendButton.textContent = "Sent";
-                        // Button stays disabled since it's now a sent request
+                        // Refresh button state after sending request
+                        await updateFriendButton(peerId);
                         
                         // Notify peer via data channel if available
                         if (dataChannel && dataChannel.readyState === 'open') {
@@ -1184,6 +1184,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                     type: 'friendRequestSent',
                                     fromUserId: authManager.getCurrentUser().id
                                 }));
+                                console.log("📨 Sent friendRequestSent notification to peer");
                             } catch (e) {
                                 console.warn("⚠️ Could not notify peer via data channel:", e);
                             }
@@ -1211,6 +1212,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                     type: 'friendshipAccepted',
                                     fromUserId: authManager.getCurrentUser().id
                                 }));
+                                console.log("📨 Sent friendshipAccepted notification to peer");
                             } catch (e) {
                                 console.warn("⚠️ Could not notify peer via data channel:", e);
                             }
@@ -1245,6 +1247,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                                     type: 'friendshipRemoved',
                                     fromUserId: authManager.getCurrentUser().id
                                 }));
+                                console.log("📨 Sent friendshipRemoved notification to peer");
                             } catch (e) {
                                 console.warn("⚠️ Could not notify peer via data channel:", e);
                             }
