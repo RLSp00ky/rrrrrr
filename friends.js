@@ -90,3 +90,39 @@ export async function getFriendStatus(userId, peerId, supabaseClient) {
         return null;
     }
 }
+
+// --------------------
+// Get detailed friend status with action needed
+// --------------------
+export async function getDetailedFriendStatus(userId, peerId, supabaseClient) {
+    try {
+        const friendship = await getFriendStatus(userId, peerId, supabaseClient);
+        
+        if (!friendship) {
+            return { status: 'none', action: 'send', buttonText: 'Add Friend' };
+        }
+
+        if (friendship.status === 'accepted') {
+            return { status: 'accepted', action: 'none', buttonText: 'Friends', requestId: friendship.id };
+        }
+
+        if (friendship.status === 'pending') {
+            if (friendship.requester_id === userId) {
+                // Current user sent the request
+                return { status: 'sent', action: 'none', buttonText: 'Sent', requestId: friendship.id };
+            } else {
+                // Current user received the request
+                return { status: 'received', action: 'accept', buttonText: 'Accept', requestId: friendship.id };
+            }
+        }
+
+        if (friendship.status === 'rejected') {
+            return { status: 'rejected', action: 'none', buttonText: 'Declined', requestId: friendship.id };
+        }
+
+        return { status: 'unknown', action: 'none', buttonText: 'Add Friend' };
+    } catch (err) {
+        console.error("❌ Error getting detailed friend status:", err);
+        return { status: 'error', action: 'send', buttonText: 'Add Friend' };
+    }
+}

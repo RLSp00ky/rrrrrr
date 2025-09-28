@@ -1,4 +1,4 @@
-import { sendFriendRequest, getFriends, respondToRequest } from "./friends.js";
+import { sendFriendRequest, getFriends, respondToRequest, getDetailedFriendStatus } from "./friends.js";
 
 
 
@@ -191,6 +191,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("✅ Current user profile initialized");
     }
 
+    async function updateFriendButton(peerId) {
+        const addFriendButton = document.getElementById("addFriendButton");
+        if (!addFriendButton || !peerId) return;
+
+        const currentUser = authManager.getCurrentUser();
+        if (!currentUser) return;
+
+        try {
+            const friendStatus = await getDetailedFriendStatus(currentUser.id, peerId, supabaseClient);
+            
+            addFriendButton.textContent = friendStatus.buttonText;
+            addFriendButton.disabled = (friendStatus.action === 'none');
+            
+            // Store the action and request ID on the button for the click handler
+            addFriendButton.setAttribute('data-action', friendStatus.action);
+            if (friendStatus.requestId) {
+                addFriendButton.setAttribute('data-request-id', friendStatus.requestId);
+            } else {
+                addFriendButton.removeAttribute('data-request-id');
+            }
+            
+            console.log(`🔄 Friend button updated: ${friendStatus.buttonText} (action: ${friendStatus.action})`);
+        } catch (error) {
+            console.error("❌ Error updating friend button:", error);
+            addFriendButton.textContent = "Add Friend";
+            addFriendButton.disabled = false;
+        }
+    }
+
     function displayUserProfile(profile, isCurrentUser = false) {
         console.log("👤 Displaying profile:", profile, "Current user:", isCurrentUser);
 
@@ -265,6 +294,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (profileContainer) {
             profileContainer.classList.toggle('current-user', isCurrentUser);
             profileContainer.classList.toggle('peer-user', !isCurrentUser);
+        }
+
+        // Update friend button for remote users
+        if (!isCurrentUser && profile.uuid) {
+            updateFriendButton(profile.uuid);
         }
 
         console.log(`✅ Profile display updated for ${isCurrentUser ? 'current user' : 'peer'}`);
@@ -1098,19 +1132,60 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (addFriendButton) {
         addFriendButton.addEventListener("click", async () => {
             const peerId = remoteUserProfile?.uuid;
+            const action = addFriendButton.getAttribute('data-action');
+            const requestId = addFriendButton.getAttribute('data-request-id');
 
             if (!peerId) {
-                console.error("❌ No peer ID available to send friend request");
+                console.error("❌ No peer ID available for friend action");
                 return;
             }
 
-            console.log(`➕ Sending friend request to ${peerId}...`);
-            const result = await sendFriendRequest(peerId, authManager, supabaseClient);
+            // Disable button while processing
+            const originalText = addFriendButton.textContent;
+            addFriendButton.disabled = true;
+            addFriendButton.textContent = "Processing...";
 
-            if (result) {
-                console.log("✅ Friend request sent:", result);
-                addFriendButton.textContent = "Request Sent!";
-                addFriendButton.disabled = true;
+            try {
+                if (action === 'send') {
+                    // Send friend request
+                    console.log(`➕ Sending friend request to ${peerId}...`);
+                    const result = await sendFriendRequest(peerId, authManager, supabaseClient);
+                    
+                    if (result) {
+                        console.log("✅ Friend request sent:", result);
+                        addFriendButton.textContent = "Sent";
+                        // Button stays disabled since it's now a sent request
+                    } else {
+                        // Restore button state on failure
+                        addFriendButton.textContent = originalText;
+                        addFriendButton.disabled = false;
+                    }
+                    
+                } else if (action === 'accept' && requestId) {
+                    // Accept friend request
+                    console.log(`✅ Accepting friend request ${requestId}...`);
+                    const result = await respondToRequest(requestId, true, supabaseClient);
+                    
+                    if (result) {
+                        console.log("✅ Friend request accepted:", result);
+                        addFriendButton.textContent = "Friends";
+                        // Button stays disabled since they're now friends
+                    } else {
+                        // Restore button state on failure
+                        addFriendButton.textContent = originalText;
+                        addFriendButton.disabled = false;
+                    }
+                    
+                } else {
+                    console.warn("⚠️ Unknown action or missing request ID:", action, requestId);
+                    addFriendButton.textContent = originalText;
+                    addFriendButton.disabled = false;
+                }
+                
+            } catch (error) {
+                console.error("❌ Error processing friend request:", error);
+                addFriendButton.textContent = originalText;
+                addFriendButton.disabled = false;
             }
         });
     }
