@@ -1059,6 +1059,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                         updateFriendButton(currentPeerId);
                     }
                     return;
+                } else if (message.type === "friendRequestSent") {
+                    console.log("📨 Peer sent friend request, updating button state");
+                    const currentPeerId = remoteUserProfile?.uuid;
+                    if (currentPeerId) {
+                        updateFriendButton(currentPeerId);
+                    }
+                    return;
                 } else if (message.type === "audioMessage") {
                     appendAudioMessage(
                         message.audioData,
@@ -1169,6 +1176,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                         console.log("✅ Friend request sent:", result);
                         addFriendButton.textContent = "Sent";
                         // Button stays disabled since it's now a sent request
+                        
+                        // Notify peer via data channel if available
+                        if (dataChannel && dataChannel.readyState === 'open') {
+                            try {
+                                dataChannel.send(JSON.stringify({
+                                    type: 'friendRequestSent',
+                                    fromUserId: authManager.getCurrentUser().id
+                                }));
+                            } catch (e) {
+                                console.warn("⚠️ Could not notify peer via data channel:", e);
+                            }
+                        }
                     } else {
                         // Restore button state on failure
                         addFriendButton.textContent = originalText;
