@@ -1,4 +1,4 @@
-import { sendFriendRequest, getFriends, respondToRequest, getDetailedFriendStatus } from "./friends.js";
+import { sendFriendRequest, getFriends, respondToRequest, getDetailedFriendStatus, deleteFriendship } from "./friends.js";
 
 
 
@@ -202,7 +202,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const friendStatus = await getDetailedFriendStatus(currentUser.id, peerId, supabaseClient);
             
             addFriendButton.textContent = friendStatus.buttonText;
-            addFriendButton.disabled = (friendStatus.action === 'none');
+            addFriendButton.disabled = (friendStatus.action === 'none'); // Disable buttons with no action (like "Sent")
             
             // Store the action and request ID on the button for the click handler
             addFriendButton.setAttribute('data-action', friendStatus.action);
@@ -1045,7 +1045,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const senderName = getSenderName(); 
                 const senderPfp = message.profile_picture || "pfp.png"; 
 
-                if (message.type === "audioMessage") {
+                if (message.type === "friendshipRemoved") {
+                    console.log("👋 Peer removed friendship, updating button state");
+                    const currentPeerId = remoteUserProfile?.uuid;
+                    if (currentPeerId) {
+                        updateFriendButton(currentPeerId);
+                    }
+                    return;
+                } else if (message.type === "friendshipAccepted") {
+                    console.log("🤝 Peer accepted friendship, updating button state");
+                    const currentPeerId = remoteUserProfile?.uuid;
+                    if (currentPeerId) {
+                        updateFriendButton(currentPeerId);
+                    }
+                    return;
+                } else if (message.type === "audioMessage") {
                     appendAudioMessage(
                         message.audioData,
                         message.fileName,
@@ -1168,10 +1182,56 @@ document.addEventListener("DOMContentLoaded", async () => {
                     
                     if (result) {
                         console.log("✅ Friend request accepted:", result);
-                        addFriendButton.textContent = "Friends";
-                        // Button stays disabled since they're now friends
+                        // Refresh button state after accepting
+                        await updateFriendButton(peerId);
+                        
+                        // Notify peer via data channel if available
+                        if (dataChannel && dataChannel.readyState === 'open') {
+                            try {
+                                dataChannel.send(JSON.stringify({
+                                    type: 'friendshipAccepted',
+                                    fromUserId: authManager.getCurrentUser().id
+                                }));
+                            } catch (e) {
+                                console.warn("⚠️ Could not notify peer via data channel:", e);
+                            }
+                        }
                     } else {
                         // Restore button state on failure
+                        addFriendButton.textContent = originalText;
+                        addFriendButton.disabled = false;
+                    }
+                    
+                } else if (action === 'remove' && requestId) {
+                    // Remove friend / unfriend
+                    const confirmRemove = confirm("Are you sure you want to remove this friend?");
+                    if (!confirmRemove) {
+                        addFriendButton.textContent = originalText;
+                        addFriendButton.disabled = false;
+                        return;
+                    }
+                    
+                    console.log(`❌ Removing friendship ${requestId}...`);
+                    const result = await deleteFriendship(requestId, supabaseClient);
+                    
+                    if (result && result.length > 0) {
+                        console.log("✅ Friendship removed:", result);
+                        // Refresh button state after removing
+                        await updateFriendButton(peerId);
+                        
+                        // Notify peer via data channel if available
+                        if (dataChannel && dataChannel.readyState === 'open') {
+                            try {
+                                dataChannel.send(JSON.stringify({
+                                    type: 'friendshipRemoved',
+                                    fromUserId: authManager.getCurrentUser().id
+                                }));
+                            } catch (e) {
+                                console.warn("⚠️ Could not notify peer via data channel:", e);
+                            }
+                        }
+                    } else {
+                        console.error("❌ Failed to remove friendship - no rows deleted");
                         addFriendButton.textContent = originalText;
                         addFriendButton.disabled = false;
                     }

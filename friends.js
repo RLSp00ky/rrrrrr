@@ -92,6 +92,31 @@ export async function getFriendStatus(userId, peerId, supabaseClient) {
 }
 
 // --------------------
+// Delete a friendship (unfriend)
+// --------------------
+export async function deleteFriendship(requestId, supabaseClient) {
+    try {
+        const { data, error } = await supabaseClient
+            .from("friends")
+            .delete()
+            .eq("id", requestId)
+            .select('id');
+
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+            console.warn("⚠️ No friendship found to delete with ID:", requestId);
+            return null;
+        }
+        
+        return data;
+    } catch (err) {
+        console.error("❌ Error deleting friendship:", err);
+        return null;
+    }
+}
+
+// --------------------
 // Get detailed friend status with action needed
 // --------------------
 export async function getDetailedFriendStatus(userId, peerId, supabaseClient) {
@@ -103,7 +128,7 @@ export async function getDetailedFriendStatus(userId, peerId, supabaseClient) {
         }
 
         if (friendship.status === 'accepted') {
-            return { status: 'accepted', action: 'none', buttonText: 'Friends', requestId: friendship.id };
+            return { status: 'accepted', action: 'remove', buttonText: 'Remove Friend', requestId: friendship.id };
         }
 
         if (friendship.status === 'pending') {
