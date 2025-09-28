@@ -86,7 +86,7 @@
           </p>
         </div>
         <div class="add-and-more">
-          <div class="add"><h1>ADD FRIEND</h1></div>
+          <button id="addFriendButton" class="add">ADD FRIEND</button>
           <div class="more"><h1>•••</h1></div>
         </div>
       </div>
