@@ -443,38 +443,31 @@ background-color: transparent;
 .add{
 height: 100%;
 }
-.add::hover{
+.add button::hover{
         cursor: pointer;
-        background-color: var(--button-hover);
+        background-color: white;
 }
 
 .add button {
-
-padding-top: 13px;
-        padding-bottom: 13px;
-font-size: 25px;
-padding-left: 110px;
-        padding-right: 110px;
-background-color: var(--button-bg);
-border: none;
-
-margin: 0;
-border-radius: 25px;
-color: var(--button-text);
-min-width: 260px;
-width: 260px;
-box-sizing: border-box;
-
+    padding: 13px 110px; /* shorthand for top/bottom and left/right */
+    font-size: 25px;
+    background-color: var(--button-bg);
+    border: none;
+    border-radius: 25px;
+    color: var(--button-text);
+    width: auto; /* let the button size itself based on content */
+    white-space: nowrap; /* prevents text from wrapping */
+    display: inline-block; /* ensures proper sizing */
+    text-align: center;
+    margin: 0;
 }
 
-.add button::hover{
-        background-color: var(--hover);
-}
+
 
 #addFriendButton {
-        min-width: 260px !important;
-        width: 260px !important;
-        box-sizing: border-box;
+        
+        width: 340px !important;
+       
 }
 
 .more{

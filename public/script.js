@@ -1161,28 +1161,30 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            // Disable button while processing
             const originalText = addFriendButton.textContent;
             addFriendButton.disabled = true;
             addFriendButton.textContent = "Processing...";
 
             try {
                 if (action === 'send') {
-                    // Send friend request
                     console.log(`➕ Sending friend request to ${peerId}...`);
                     const result = await sendFriendRequest(peerId, authManager, supabaseClient);
-                    
+
                     if (result) {
                         console.log("✅ Friend request sent:", result);
-                        // Refresh button state after sending request
-                        await updateFriendButton(peerId);
-                        
-                        // Notify peer via data channel if available
+
+                        // Update sender button immediately
+                        addFriendButton.textContent = "Request Sent";
+                        addFriendButton.setAttribute('data-action', 'remove');
+                        addFriendButton.setAttribute('data-request-id', result.id);
+
+                        // Notify receiver via data channel
                         if (dataChannel && dataChannel.readyState === 'open') {
                             try {
                                 dataChannel.send(JSON.stringify({
                                     type: 'friendRequestSent',
-                                    fromUserId: authManager.getCurrentUser().id
+                                    fromUserId: authManager.getCurrentUser().id,
+                                    requestId: result.id
                                 }));
                                 console.log("📨 Sent friendRequestSent notification to peer");
                             } catch (e) {
@@ -1190,22 +1192,20 @@ document.addEventListener("DOMContentLoaded", async () => {
                             }
                         }
                     } else {
-                        // Restore button state on failure
                         addFriendButton.textContent = originalText;
-                        addFriendButton.disabled = false;
                     }
-                    
+
                 } else if (action === 'accept' && requestId) {
-                    // Accept friend request
                     console.log(`✅ Accepting friend request ${requestId}...`);
                     const result = await respondToRequest(requestId, true, supabaseClient);
-                    
+
                     if (result) {
                         console.log("✅ Friend request accepted:", result);
-                        // Refresh button state after accepting
-                        await updateFriendButton(peerId);
-                        
-                        // Notify peer via data channel if available
+
+                        // Update button immediately
+                        addFriendButton.textContent = "Friends";
+                        addFriendButton.setAttribute('data-action', 'remove');
+
                         if (dataChannel && dataChannel.readyState === 'open') {
                             try {
                                 dataChannel.send(JSON.stringify({
@@ -1218,29 +1218,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                             }
                         }
                     } else {
-                        // Restore button state on failure
                         addFriendButton.textContent = originalText;
-                        addFriendButton.disabled = false;
                     }
-                    
+
                 } else if (action === 'remove' && requestId) {
-                    // Remove friend / unfriend
                     const confirmRemove = confirm("Are you sure you want to remove this friend?");
                     if (!confirmRemove) {
                         addFriendButton.textContent = originalText;
-                        addFriendButton.disabled = false;
                         return;
                     }
-                    
+
                     console.log(`❌ Removing friendship ${requestId}...`);
                     const result = await deleteFriendship(requestId, supabaseClient);
-                    
+
                     if (result && result.length > 0) {
                         console.log("✅ Friendship removed:", result);
-                        // Refresh button state after removing
-                        await updateFriendButton(peerId);
-                        
-                        // Notify peer via data channel if available
+
+                        // Update button immediately
+                        addFriendButton.textContent = "Add Friend";
+                        addFriendButton.setAttribute('data-action', 'send');
+                        addFriendButton.removeAttribute('data-request-id');
+
                         if (dataChannel && dataChannel.readyState === 'open') {
                             try {
                                 dataChannel.send(JSON.stringify({
@@ -1255,21 +1253,66 @@ document.addEventListener("DOMContentLoaded", async () => {
                     } else {
                         console.error("❌ Failed to remove friendship - no rows deleted");
                         addFriendButton.textContent = originalText;
-                        addFriendButton.disabled = false;
                     }
-                    
+
                 } else {
                     console.warn("⚠️ Unknown action or missing request ID:", action, requestId);
                     addFriendButton.textContent = originalText;
-                    addFriendButton.disabled = false;
                 }
-                
+
             } catch (error) {
                 console.error("❌ Error processing friend request:", error);
                 addFriendButton.textContent = originalText;
+            } finally {
                 addFriendButton.disabled = false;
             }
         });
     }
+
+    // Listen for incoming data channel messages to update buttons live
+    if (dataChannel) {
+        dataChannel.addEventListener('message', (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+
+                switch (msg.type) {
+                    case 'friendRequestSent':
+                        if (remoteUserProfile?.uuid === msg.fromUserId) {
+                            const button = document.getElementById("addFriendButton");
+                            if (button) {
+                                button.textContent = "Accept Request";
+                                button.setAttribute('data-action', 'accept');
+                                button.setAttribute('data-request-id', msg.requestId);
+                            }
+                        }
+                        break;
+
+                    case 'friendshipAccepted':
+                        if (remoteUserProfile?.uuid === msg.fromUserId) {
+                            const button = document.getElementById("addFriendButton");
+                            if (button) {
+                                button.textContent = "Friends";
+                                button.setAttribute('data-action', 'remove');
+                            }
+                        }
+                        break;
+
+                    case 'friendshipRemoved':
+                        if (remoteUserProfile?.uuid === msg.fromUserId) {
+                            const button = document.getElementById("addFriendButton");
+                            if (button) {
+                                button.textContent = "Add Friend";
+                                button.setAttribute('data-action', 'send');
+                                button.removeAttribute('data-request-id');
+                            }
+                        }
+                        break;
+                }
+            } catch (e) {
+                console.warn("⚠️ Failed to parse data channel message:", e);
+            }
+        });
+    }
+
 });
 

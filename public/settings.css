@@ -424,19 +424,21 @@ main {
     width: 80px;
     height: 80px;
     border-radius: 50%;
-
+    
 }
 
 .profile-image-upload .cover-image-placeholder {
     flex-grow: 1;
     height: 140px;
     width: 286px;
+    cursor: default;
 }
 
 .profile-image-upload .edit-icon {
     width: 30px;
     height: 30px;
     background-color: transparent;
+    cursor: pointer;
 }
 
 .upgrade-button {
