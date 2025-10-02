@@ -2,7 +2,6 @@ import { sendFriendRequest, getFriends, respondToRequest, getDetailedFriendStatu
 
 
 
-
 const cachedTheme = localStorage.getItem("user-theme");
   if (cachedTheme) {
     document.documentElement.setAttribute("data-theme", cachedTheme);
@@ -34,6 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const pfpImage = document.getElementById("pfp-image");
     const bannerImage = document.getElementById("banner-image");
     const verifyBadge = document.getElementById("verify-badge");
+    const testerBadge = document.getElementById("tester-badge")
     const premiumBadge = document.getElementById("premium-badge");
     const audioUploadInput = document.getElementById("audioUpload");
     const imageUploadInput = document.getElementById("imageUpload");
@@ -243,6 +243,12 @@ document.addEventListener("DOMContentLoaded", async () => {
             };
         }
 
+        const friendCountElement = document.getElementById("friend-count");
+        if (friendCountElement && profile.friendcount !== undefined) {
+            friendCountElement.textContent = `Friends: ${profile.friendcount}`;
+        }
+
+        
         if (verifyBadge) {
             if (profile.verified) {
                 verifyBadge.style.display = "inline-block"; 
@@ -250,7 +256,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 verifyBadge.style.display = "none";
             }
         }
-
+        if (testerBadge) {
+            if (profile.tester) {
+                testerBadge.style.display = "inline-block"; 
+            } else {
+                testerBadge.style.display = "none";
+            }
+        }
         if (premiumBadge) {
             if (profile.premium) {
                 premiumBadge.style.display = "inline-block"; 
@@ -524,11 +536,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 description,
                 verified,
                 premium,
+                tester,
                 spotify,
                 youtube,
                 tiktok,
                 instagram,
-                themes
+                themes,
+                friendcount  
+                
             `)
             .eq("id", userUUID)
             .single();
@@ -1031,39 +1046,74 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
         }
     }
+    async function refreshProfilesFromPeerMessage(peerIdOfAcceptor) {
+        const localUserId = authManager.getCurrentUser().id;
 
+        // 1. Refresh CURRENT user's profile (updates THEIR own friend count)
+        const { data: currentProfile } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", localUserId)
+            .single();
+        if (currentProfile) displayUserProfile(currentProfile, true);
+
+        // 2. Refresh the profile currently visible on their screen (the acceptor's/remover's profile)
+        const { data: peerProfile } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", peerIdOfAcceptor)
+            .single();
+
+        if (peerProfile) {
+            // **CRITICAL FIX: DIRECTLY TARGET THE ID FOR THE FRIEND COUNT**
+            const friendCountElement = document.getElementById("friend-count");
+            if (friendCountElement) {
+                friendCountElement.textContent = `Friends: ${peerProfile.friends}`;
+            }
+
+            displayUserProfile(peerProfile, false); 
+        }
+
+        // 3. Update the button state
+        const updatedStatus = await getDetailedFriendStatus(localUserId, peerIdOfAcceptor, supabaseClient);
+        applyFriendButtonState(addFriendButton, updatedStatus);
+
+        // Log success after profile and button updates complete
+        console.log("Friend Count Updated");
+    }
     function setupDataChannelListeners() {
         if (!dataChannel) return;
         dataChannel.onopen = () => {
             console.log("💬 Data channel open");
             appendSystemMessage("💬 Chat channel connected");
         };
-        dataChannel.onmessage = (event) => {
+        dataChannel.onmessage = async (event) => { // Must be 'async' to use await
             try {
                 const message = JSON.parse(event.data);
 
-                const senderName = getSenderName(); 
-                const senderPfp = message.profile_picture || "pfp.png"; 
+                const senderName = getSenderName();
+                const senderPfp = message.profile_picture || "pfp.png";
+                const currentPeerId = remoteUserProfile?.uuid;
 
                 if (message.type === "friendshipRemoved") {
-                    console.log("👋 Peer removed friendship, updating button state");
-                    const currentPeerId = remoteUserProfile?.uuid;
+                    console.log("👋 Peer removed friendship, updating button state AND friend count");
                     if (currentPeerId) {
-                        updateFriendButton(currentPeerId);
+                        // Call the robust function that fetches data and updates the UI
+                        await refreshProfilesFromPeerMessage(currentPeerId);
                     }
                     return;
                 } else if (message.type === "friendshipAccepted") {
-                    console.log("🤝 Peer accepted friendship, updating button state");
-                    const currentPeerId = remoteUserProfile?.uuid;
+                    console.log("🤝 Peer accepted friendship, updating button state AND friend count");
                     if (currentPeerId) {
-                        updateFriendButton(currentPeerId);
+                        // Call the robust function that fetches data and updates the UI
+                        await refreshProfilesFromPeerMessage(currentPeerId);
                     }
                     return;
                 } else if (message.type === "friendRequestSent") {
                     console.log("📨 Peer sent friend request, updating button state");
-                    const currentPeerId = remoteUserProfile?.uuid;
                     if (currentPeerId) {
-                        updateFriendButton(currentPeerId);
+                        // Assuming updateFriendButton still works for the sender's state
+                        updateFriendButton(currentPeerId); 
                     }
                     return;
                 } else if (message.type === "audioMessage") {
@@ -1150,114 +1200,105 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     const addFriendButton = document.getElementById("addFriendButton");
 
+    // 🔹 Helper to apply consistent button state
+    function applyFriendButtonState(button, state) {
+        if (!button || !state) return;
+        button.textContent = state.buttonText;
+        button.setAttribute("data-action", state.action);
+        if (state.requestId) {
+            button.setAttribute("data-request-id", state.requestId);
+        } else {
+            button.removeAttribute("data-request-id");
+        }
+    }
+
+    // 🔹 Helper to refresh profiles and friend button
+    async function refreshProfiles(peerId) {
+        // Refresh current user's profile
+        const { data: currentProfile } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", authManager.getCurrentUser().id)
+            .single();
+        if (currentProfile) displayUserProfile(currentProfile, true);
+
+        // Refresh peer profile
+        const { data: peerProfile } = await supabaseClient
+            .from("profiles")
+            .select("*")
+            .eq("id", peerId)
+            .single();
+        if (peerProfile) displayUserProfile(peerProfile, false);
+
+        // Update friend button state
+        const updated = await getDetailedFriendStatus(authManager.getCurrentUser().id, peerId, supabaseClient);
+        applyFriendButtonState(addFriendButton, updated);
+    }
+
+    // 🔹 Handle button clicks
     if (addFriendButton) {
         addFriendButton.addEventListener("click", async () => {
             const peerId = remoteUserProfile?.uuid;
-            const action = addFriendButton.getAttribute('data-action');
-            const requestId = addFriendButton.getAttribute('data-request-id');
+            const action = addFriendButton.getAttribute("data-action");
+            const requestId = addFriendButton.getAttribute("data-request-id");
 
-            if (!peerId) {
-                console.error("❌ No peer ID available for friend action");
-                return;
-            }
+            if (!peerId) return console.error("❌ No peer ID available for friend action");
 
             const originalText = addFriendButton.textContent;
             addFriendButton.disabled = true;
             addFriendButton.textContent = "Processing...";
 
             try {
-                if (action === 'send') {
-                    console.log(`➕ Sending friend request to ${peerId}...`);
-                    const result = await sendFriendRequest(peerId, authManager, supabaseClient);
+                if (action === "send") {
+                    await sendFriendRequest(peerId, authManager, supabaseClient);
+                    await refreshProfiles(peerId);
 
-                    if (result) {
-                        console.log("✅ Friend request sent:", result);
-
-                        // Update sender button immediately
-                        addFriendButton.textContent = "Request Sent";
-                        addFriendButton.setAttribute('data-action', 'remove');
-                        addFriendButton.setAttribute('data-request-id', result.id);
-
-                        // Notify receiver via data channel
-                        if (dataChannel && dataChannel.readyState === 'open') {
-                            try {
-                                dataChannel.send(JSON.stringify({
-                                    type: 'friendRequestSent',
-                                    fromUserId: authManager.getCurrentUser().id,
-                                    requestId: result.id
-                                }));
-                                console.log("📨 Sent friendRequestSent notification to peer");
-                            } catch (e) {
-                                console.warn("⚠️ Could not notify peer via data channel:", e);
-                            }
-                        }
-                    } else {
-                        addFriendButton.textContent = originalText;
+                    if (dataChannel?.readyState === "open") {
+                        dataChannel.send(JSON.stringify({
+                            type: "friendRequestSent",
+                            fromUserId: authManager.getCurrentUser().id
+                        }));
                     }
 
-                } else if (action === 'accept' && requestId) {
-                    console.log(`✅ Accepting friend request ${requestId}...`);
-                    const result = await respondToRequest(requestId, true, supabaseClient);
+                } else if (action === "accept" && requestId) {
+                    await respondToRequest(requestId, true, supabaseClient);
 
-                    if (result) {
-                        console.log("✅ Friend request accepted:", result);
+                    // Increment friend count for both users
+                    await supabaseClient.rpc("increment_friendcount", { user_id: authManager.getCurrentUser().id });
+                    await supabaseClient.rpc("increment_friendcount", { user_id: peerId });
 
-                        // Update button immediately
-                        addFriendButton.textContent = "Friends";
-                        addFriendButton.setAttribute('data-action', 'remove');
+                    await refreshProfiles(peerId);
 
-                        if (dataChannel && dataChannel.readyState === 'open') {
-                            try {
-                                dataChannel.send(JSON.stringify({
-                                    type: 'friendshipAccepted',
-                                    fromUserId: authManager.getCurrentUser().id
-                                }));
-                                console.log("📨 Sent friendshipAccepted notification to peer");
-                            } catch (e) {
-                                console.warn("⚠️ Could not notify peer via data channel:", e);
-                            }
-                        }
-                    } else {
-                        addFriendButton.textContent = originalText;
+                    if (dataChannel?.readyState === "open") {
+                        dataChannel.send(JSON.stringify({
+                            type: "friendshipAccepted",
+                            fromUserId: authManager.getCurrentUser().id,
+                            peerId: peerId
+                        }));
                     }
 
-                } else if (action === 'remove' && requestId) {
+                } else if (action === "remove" && requestId) {
                     const confirmRemove = confirm("Are you sure you want to remove this friend?");
                     if (!confirmRemove) {
                         addFriendButton.textContent = originalText;
                         return;
                     }
 
-                    console.log(`❌ Removing friendship ${requestId}...`);
-                    const result = await deleteFriendship(requestId, supabaseClient);
+                    await deleteFriendship(requestId, supabaseClient);
 
-                    if (result && result.length > 0) {
-                        console.log("✅ Friendship removed:", result);
+                    // Decrement friend count for both users
+                    await supabaseClient.rpc("decrement_friendcount", { user_id: authManager.getCurrentUser().id });
+                    await supabaseClient.rpc("decrement_friendcount", { user_id: peerId });
 
-                        // Update button immediately
-                        addFriendButton.textContent = "Add Friend";
-                        addFriendButton.setAttribute('data-action', 'send');
-                        addFriendButton.removeAttribute('data-request-id');
+                    await refreshProfiles(peerId);
 
-                        if (dataChannel && dataChannel.readyState === 'open') {
-                            try {
-                                dataChannel.send(JSON.stringify({
-                                    type: 'friendshipRemoved',
-                                    fromUserId: authManager.getCurrentUser().id
-                                }));
-                                console.log("📨 Sent friendshipRemoved notification to peer");
-                            } catch (e) {
-                                console.warn("⚠️ Could not notify peer via data channel:", e);
-                            }
-                        }
-                    } else {
-                        console.error("❌ Failed to remove friendship - no rows deleted");
-                        addFriendButton.textContent = originalText;
+                    if (dataChannel?.readyState === "open") {
+                        dataChannel.send(JSON.stringify({
+                            type: "friendshipRemoved",
+                            fromUserId: authManager.getCurrentUser().id,
+                            peerId: peerId
+                        }));
                     }
-
-                } else {
-                    console.warn("⚠️ Unknown action or missing request ID:", action, requestId);
-                    addFriendButton.textContent = originalText;
                 }
 
             } catch (error) {
@@ -1269,44 +1310,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Listen for incoming data channel messages to update buttons live
+    // 🔔 Listen for incoming peer updates
     if (dataChannel) {
-        dataChannel.addEventListener('message', (event) => {
+        dataChannel.addEventListener("message", async (event) => {
             try {
                 const msg = JSON.parse(event.data);
 
-                switch (msg.type) {
-                    case 'friendRequestSent':
-                        if (remoteUserProfile?.uuid === msg.fromUserId) {
-                            const button = document.getElementById("addFriendButton");
-                            if (button) {
-                                button.textContent = "Accept Request";
-                                button.setAttribute('data-action', 'accept');
-                                button.setAttribute('data-request-id', msg.requestId);
-                            }
-                        }
-                        break;
+                if (["friendRequestSent", "friendshipAccepted", "friendshipRemoved"].includes(msg.type)) {
+                    const button = document.getElementById("addFriendButton");
+                    if (button && remoteUserProfile?.uuid) {
+                        const updated = await getDetailedFriendStatus(authManager.getCurrentUser().id, remoteUserProfile.uuid, supabaseClient);
+                        applyFriendButtonState(button, updated);
+                    }
 
-                    case 'friendshipAccepted':
-                        if (remoteUserProfile?.uuid === msg.fromUserId) {
-                            const button = document.getElementById("addFriendButton");
-                            if (button) {
-                                button.textContent = "Friends";
-                                button.setAttribute('data-action', 'remove');
-                            }
+                    // Refresh remote user card for current user
+                    if (msg.type === "friendshipAccepted" || msg.type === "friendshipRemoved") {
+                        const peerIdToRefresh = msg.peerId || msg.fromUserId;
+                        const { data: peerProfile } = await supabaseClient
+                            .from("profiles")
+                            .select("*")
+                            .eq("id", peerIdToRefresh)
+                            .single();
+                        if (peerProfile) {
+                            displayUserProfile(peerProfile, false);
                         }
-                        break;
-
-                    case 'friendshipRemoved':
-                        if (remoteUserProfile?.uuid === msg.fromUserId) {
-                            const button = document.getElementById("addFriendButton");
-                            if (button) {
-                                button.textContent = "Add Friend";
-                                button.setAttribute('data-action', 'send');
-                                button.removeAttribute('data-request-id');
-                            }
-                        }
-                        break;
+                    }
                 }
             } catch (e) {
                 console.warn("⚠️ Failed to parse data channel message:", e);
@@ -1314,5 +1342,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-});
+    // 🔹 Load initial state on profile open
+    async function initFriendButton() {
+        if (!addFriendButton || !remoteUserProfile?.uuid) return;
 
+        const updated = await getDetailedFriendStatus(authManager.getCurrentUser().id, remoteUserProfile.uuid, supabaseClient);
+        applyFriendButtonState(addFriendButton, updated);
+    }
+    initFriendButton();
+
+});

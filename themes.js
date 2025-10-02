@@ -9,7 +9,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const user = session.user;
 
-  // Load the user's theme and premium status
   async function loadThemeAndProfile() {
     const { data: profile, error } = await supabaseClient
       .from("profiles")
@@ -22,7 +21,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // Apply saved theme
     if (profile.themes) {
       document.querySelectorAll(".theme-card").forEach(card =>
         card.classList.remove("selected")
@@ -35,7 +33,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       localStorage.setItem("user-theme", profile.themes);
     }
 
-    // Handle premium theme locking
     document.querySelectorAll(".theme-card.red-mode, .theme-card.blue-mode").forEach(card => {
       if (!profile.is_premium) {
         card.classList.add("locked");
@@ -49,10 +46,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   await loadThemeAndProfile();
 
-  // Click listener for all theme cards
   document.querySelectorAll(".theme-card").forEach(card => {
     card.addEventListener("click", () => {
-      if (card.classList.contains("locked")) return; // Block locked cards
+      if (card.classList.contains("locked")) return; 
 
       document.querySelectorAll(".theme-card").forEach(c => c.classList.remove("selected"));
       card.classList.add("selected");
@@ -63,7 +59,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  // Save selected theme
   document.querySelector(".save-btn").addEventListener("click", async () => {
     const selectedCard = document.querySelector(".theme-card.selected");
     if (!selectedCard) {

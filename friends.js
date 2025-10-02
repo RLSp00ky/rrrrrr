@@ -1,8 +1,3 @@
-// friends.js
-
-// --------------------
-// Send a friend request
-// --------------------
 export async function sendFriendRequest(receiverId, authManager, supabaseClient) {
     const user = authManager.getCurrentUser();
     if (!user) return console.error("❌ Not authenticated");
@@ -19,26 +14,31 @@ export async function sendFriendRequest(receiverId, authManager, supabaseClient)
     }
 }
 
-// --------------------
-// Accept or reject
-// --------------------
 export async function respondToRequest(requestId, accept = true, supabaseClient) {
     try {
         const { data, error } = await supabaseClient
             .from("friends")
             .update({ status: accept ? "accepted" : "rejected" })
-            .eq("id", requestId);
+            .eq("id", requestId)
+            .select();
 
         if (error) throw error;
+
+        if (accept && data && data.length > 0) {
+            const friendship = data[0];
+
+            await supabaseClient.rpc("increment_friendcounts", {
+                req_id: friendship.requester_id,
+                rec_id: friendship.receiver_id
+            });
+        }
+
         return data;
     } catch (err) {
         console.error("❌ Error responding:", err);
     }
 }
 
-// --------------------
-// Get current friends
-// --------------------
 export async function getFriends(authManager, supabaseClient) {
     const user = authManager.getCurrentUser();
     if (!user) return [];
@@ -73,6 +73,7 @@ export async function getFriends(authManager, supabaseClient) {
         return [];
     }
 }
+
 export async function getFriendStatus(userId, peerId, supabaseClient) {
     try {
         const { data, error } = await supabaseClient
@@ -81,34 +82,38 @@ export async function getFriendStatus(userId, peerId, supabaseClient) {
             .or(`and(requester_id.eq.${userId},receiver_id.eq.${peerId}),and(requester_id.eq.${peerId},receiver_id.eq.${userId})`)
             .single();
 
-        if (error && error.code !== "PGRST116") { // ignore "no rows" error
+        if (error && error.code !== "PGRST116") { 
             throw error;
         }
-        return data || null; // null if no relationship
+        return data || null;
     } catch (err) {
         console.error("❌ Error checking friend status:", err);
         return null;
     }
 }
 
-// --------------------
-// Delete a friendship (unfriend)
-// --------------------
 export async function deleteFriendship(requestId, supabaseClient) {
     try {
         const { data, error } = await supabaseClient
             .from("friends")
             .delete()
             .eq("id", requestId)
-            .select('id');
+            .select();
 
         if (error) throw error;
-        
+
         if (!data || data.length === 0) {
             console.warn("⚠️ No friendship found to delete with ID:", requestId);
             return null;
         }
-        
+
+        const friendshipData = data[0];
+
+        await supabaseClient.rpc("decrement_friendcounts", {
+            req_id: friendshipData.requester_id,
+            rec_id: friendshipData.receiver_id
+        });
+
         return data;
     } catch (err) {
         console.error("❌ Error deleting friendship:", err);
@@ -116,13 +121,10 @@ export async function deleteFriendship(requestId, supabaseClient) {
     }
 }
 
-// --------------------
-// Get detailed friend status with action needed
-// --------------------
 export async function getDetailedFriendStatus(userId, peerId, supabaseClient) {
     try {
         const friendship = await getFriendStatus(userId, peerId, supabaseClient);
-        
+
         if (!friendship) {
             return { status: 'none', action: 'send', buttonText: 'Add Friend' };
         }
@@ -133,10 +135,8 @@ export async function getDetailedFriendStatus(userId, peerId, supabaseClient) {
 
         if (friendship.status === 'pending') {
             if (friendship.requester_id === userId) {
-                // Current user sent the request
                 return { status: 'sent', action: 'none', buttonText: 'Sent', requestId: friendship.id };
             } else {
-                // Current user received the request
                 return { status: 'received', action: 'accept', buttonText: 'Accept', requestId: friendship.id };
             }
         }

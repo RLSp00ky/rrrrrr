@@ -207,6 +207,7 @@ user-select: none;
 }
 
 main {
+        
         height: 100%;
         display: flex;
         justify-content: center;
@@ -324,7 +325,8 @@ color: var(--text-color);
 }
 
 .friends {
-margin-right: 50px;
+text-align: left;
+margin-left: 13px;
 margin-top: 0px;
 font-size: 15px;
 color: var(--text-color);
@@ -449,7 +451,7 @@ height: 100%;
 }
 
 .add button {
-    padding: 13px 110px; /* shorthand for top/bottom and left/right */
+    padding: 13px 0px; /* shorthand for top/bottom and left/right */
     font-size: 25px;
     background-color: var(--button-bg);
     border: none;
@@ -465,7 +467,7 @@ height: 100%;
 
 
 #addFriendButton {
-        
+        text-align: center;
         width: 340px !important;
        
 }
@@ -840,3 +842,4 @@ border-radius: 10px;
 .no-socials {
                 margin-bottom: 20px; /* Adjust as needed for spacing between banner and bio */
 }
+
