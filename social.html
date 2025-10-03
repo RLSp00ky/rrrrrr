@@ -87,6 +87,22 @@
          </aside>
 
          <section class="chat-section">
+           <button id="scroll-to-bottom" style="
+             position: absolute;
+             bottom: 100px;
+             
+             right: 32%;
+             display: none;
+             padding: 10px 15px;
+             border-radius: 25px;
+             background-color: var(--card-border);
+             color: var(--text-color);
+             font-weight: bold;
+             border: none;
+             cursor: pointer;
+             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+             z-index: 100;
+           ">Scroll to bottom</button>
 
            <div id="chat-container" style="display: none;">
 
@@ -96,9 +112,11 @@
              </div>
 
              <div id="chat-messages"></div>
-
+        
              <div id="chat-input">
                <input type="text" id="chat-message-input" placeholder="Type a message...">
+               <input type="file" id="file-upload" style="display:none;" />
+               <button id="upload-btn">upload</button>
                <button id="chat-send-btn">Send</button>
              </div>
            </div>

@@ -403,6 +403,7 @@ color: var(--navbar-color);
 
 #chat-messages {
   flex: 1; 
+  padding-right:20px;
   padding: 10px;
   height: 440px;
   overflow-y: auto;
@@ -431,6 +432,19 @@ color: var(--navbar-color);
   outline: none;
   border-color: var(--card-border);
 }
+
+#upload-btn {
+  margin-left: 10px;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  background: var(--card-border);
+  color: var(--text-color);
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
 
 #chat-send-btn {
   margin-left: 10px;
@@ -511,4 +525,28 @@ color: var(--navbar-color);
 #friends-panel {
   scrollbar-width: 8px;
   scrollbar-color: var(--card-border) var(--bg-color);
+}
+
+#chat-messages::-webkit-scrollbar {
+  margin-right: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  width: 20px;
+  border-radius: 25px;
+}
+
+#chat-messages::-webkit-scrollbar-track {
+  background: var(--navbar-bg);
+  border: solid var(--card-border) 3px;
+  border-radius: 25px;
+}
+
+#chat-messages::-webkit-scrollbar-thumb {
+  background-color: var(--card-border);
+  border-radius: 20px;
+  
+}
+
+#chat-messages::-webkit-scrollbar-thumb:hover {
+   background-color: var(--highlight);
 }
