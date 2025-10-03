@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "main": "database.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:setup": "deno run --allow-net --allow-read test-user-setup.js create",
+    "test:verify": "deno run --allow-net --allow-read test-user-setup.js verify",
+    "test:cleanup": "deno run --allow-net --allow-read test-user-setup.js cleanup",
     "start": "node server.js"
   },
   "keywords": [],
@@ -12,6 +17,31 @@
   "description": "",
   "dependencies": {
     "express": "^5.1.0",
+    "jest": "^30.2.0",
+    "jsdom": "^27.0.0",
     "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^9.3.0",
+    "@testing-library/jest-dom": "^6.1.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest-environment-jsdom": "^30.2.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
+    "moduleNameMapper": {
+      "\\.(css|less|scss|sass)$": "identity-obj-proxy"
+    },
+    "testMatch": [
+      "<rootDir>/__tests__/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "social.js",
+      "!node_modules/**",
+      "!__tests__/**"
+    ]
   }
 }
