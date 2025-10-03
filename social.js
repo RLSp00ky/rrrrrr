@@ -534,6 +534,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const channelName = `chat-${[currentUserProfile.id, friendId].sort().join("-")}`;
+    console.log('Setting up real-time subscription for channel:', channelName);
+    
     chatChannel = supabaseClient.channel(channelName)
       .on(
         "postgres_changes",
@@ -541,7 +543,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `or(and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
+          filter: `receiver_id=eq.${currentUserProfile.id}`
         },
         async payload => {
           const msg = payload.new;
@@ -560,6 +562,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             msg.sender = profile || { username: "Unknown", profile_picture: "icons/default-avatar.png" };
           }
 
+          console.log('Real-time message received:', msg);
+          
           // Re-query DOM elements to ensure fresh references
           const chatMessagesEl = document.getElementById("chat-messages");
           const chatContainer = document.getElementById("chat-container");
@@ -571,14 +575,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           // Append the message to the UI if we have a valid element
           if (chatMessagesEl) {
+            console.log('🔥 About to append message to UI...');
             appendMessage(msg, lastDateRef);
             animateScrollToBottom(200); // scroll down when new message arrives
+            console.log('🔥 Real-time message added to UI successfully!');
           } else {
             console.error("Chat messages element not found when trying to append real-time message");
           }
         }
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        console.log('🔔 SUBSCRIPTION STATUS:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Real-time chat subscription established');
+          console.log('🔔 Now listening for messages on channel:', channelName);
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Real-time chat subscription error:', err);
+        } else if (status === 'TIMED_OUT') {
+          console.error('❌ Real-time chat subscription timed out');
+        } else if (status === 'CLOSED') {
+          console.log('❌ Real-time chat subscription closed');
+        }
+      });
   }
 
 
