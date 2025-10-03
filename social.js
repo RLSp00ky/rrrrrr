@@ -557,7 +557,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `receiver_id=eq.${currentUserProfile.id}`
+          filter: `receiver_id=eq.${currentUserProfile.id}&sender_id=eq.${friendId}`
         },
         async payload => {
           const msg = payload.new;
