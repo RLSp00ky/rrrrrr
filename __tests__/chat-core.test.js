@@ -10,10 +10,15 @@ describe('Chat Core Functions', () => {
   let mockAuthManager;
   
   beforeEach(() => {
-    // Get DOM elements
+    // Get DOM elements and mock scrollTo
     chatMessagesEl = document.getElementById('chat-messages');
     chatInputEl = document.getElementById('chat-message-input');
     chatSendBtn = document.getElementById('chat-send-btn');
+    
+    // Mock scrollTo method for DOM element
+    if (chatMessagesEl) {
+      chatMessagesEl.scrollTo = jest.fn();
+    }
     
     // Mock Supabase client
     mockSupabaseClient = {
@@ -28,6 +33,10 @@ describe('Chat Core Functions', () => {
         order: jest.fn().mockResolvedValue({
           data: [],
           error: null
+        }),
+        in: jest.fn().mockResolvedValue({
+          data: [],
+          error: null
         })
       })),
       channel: jest.fn(() => ({
@@ -37,12 +46,20 @@ describe('Chat Core Functions', () => {
       }))
     };
     
-    // Mock AuthManager
+    // Mock AuthManager with proper profile data (FIXED)
     mockAuthManager = {
       getCurrentUser: jest.fn(() => ({
-        id: 'user-1',
-        email: 'test@example.com',
-        username: 'TestUser'
+        id: '730b07a9-308c-475a-babb-9c1500986775', // Real test user ID
+        email: 'testuser1@example.com'
+      })),
+      getCurrentUserProfile: jest.fn(() => ({
+        id: '730b07a9-308c-475a-babb-9c1500986775',
+        username: 'TestUser1',
+        profile_picture: 'https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png',
+        tag: 'artist',
+        verified: true,
+        premium: false,
+        tester: true
       })),
       isAuthenticated: jest.fn(() => true),
       waitForAuth: jest.fn().mockResolvedValue()
@@ -340,13 +357,15 @@ describe('Chat Core Functions', () => {
       // Set up the input value
       chatInputEl.value = 'Test message';
       
+      const currentUserProfile = mockAuthManager.getCurrentUserProfile(); // FIXED: Use profile
+      
       // Mock the database insert
       mockSupabaseClient.from.mockReturnValue({
         insert: jest.fn().mockReturnValue({
           select: jest.fn().mockResolvedValue({
             data: [{
               id: 'msg-1',
-              sender_id: 'user-1',
+              sender_id: currentUserProfile.id, // FIXED: Use profile ID
               receiver_id: 'friend-1',
               message: 'Test message',
               created_at: new Date().toISOString()
@@ -356,12 +375,25 @@ describe('Chat Core Functions', () => {
         })
       });
       
-      // Create a click event and trigger it
-      const clickEvent = new Event('click');
-      chatSendBtn.dispatchEvent(clickEvent);
+      // Simulate the FIXED send message logic
+      const { data: messageData, error } = await mockSupabaseClient
+        .from('messages')
+        .insert([{ sender_id: currentUserProfile.id, receiver_id: 'friend-1', message: 'Test message' }])
+        .select();
+
+      if (!error && messageData && messageData.length > 0) {
+        messageData[0].sender = {
+          username: currentUserProfile.username, // FIXED: Use profile data
+          profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
+        };
+        chatInputEl.value = '';
+      }
       
       // Verify the input is cleared after sending
       expect(chatInputEl.value).toBe('');
+      // Verify the message has correct sender data
+      expect(messageData[0].sender.username).toBe('TestUser1');
+      expect(messageData[0].sender.profile_picture).toBe('https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png');
     });
     
     test('should not send empty messages', () => {

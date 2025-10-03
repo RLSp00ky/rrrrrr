@@ -494,14 +494,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function loadChat(friendId) {
     currentFriendId = friendId;
-    const currentUser = authManager.getCurrentUser();
-    if (!currentUser) return console.error("No current user");
+    const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+    if (!currentUserProfile) return console.error("No current user profile");
 
     const { data: messages, error } = await supabaseClient
       .from("messages")
       .select("*")
       .or(
-        `and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id})`
+        `and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
       )
       .order("created_at", { ascending: true });
 
@@ -533,7 +533,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       try { chatChannel.unsubscribe(); } catch (e) {}
     }
 
-    const channelName = `chat-${[currentUser.id, friendId].sort().join("-")}`;
+    const channelName = `chat-${[currentUserProfile.id, friendId].sort().join("-")}`;
     chatChannel = supabaseClient.channel(channelName)
       .on(
         "postgres_changes",
@@ -541,15 +541,15 @@ document.addEventListener("DOMContentLoaded", async () => {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `or(and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id}))`
+          filter: `or(and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
         },
         async payload => {
           const msg = payload.new;
 
-          if (msg.sender_id === currentUser.id) {
+          if (msg.sender_id === currentUserProfile.id) {
             msg.sender = {
-              username: currentUser.username,
-              profile_picture: currentUser.profile_picture || "icons/default-avatar.png"
+              username: currentUserProfile.username, // FIXED: Use profile
+              profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
             };
           } else {
             const { data: profile } = await supabaseClient
@@ -589,21 +589,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       const message = chatInputEl.value.trim();
       if (!message || !currentFriendId) return;
 
-      const currentUser = authManager.getCurrentUser();
-      if (!currentUser) return console.error("No current user");
+      const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+      if (!currentUserProfile) return console.error("No current user profile");
 
       try {
         const { data: messageData, error } = await supabaseClient
           .from("messages")
-          .insert([{ sender_id: currentUser.id, receiver_id: currentFriendId, message }])
+          .insert([{ sender_id: currentUserProfile.id, receiver_id: currentFriendId, message }])
           .select();
 
         if (error) return console.error("Error sending message:", error);
 
         if (messageData && messageData.length > 0) {
           messageData[0].sender = {
-            username: currentUser.username,
-            profile_picture: currentUser.profile_picture || "icons/default-avatar.png"
+            username: currentUserProfile.username, // FIXED: Use profile
+            profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
           };
           appendMessage(messageData[0], lastDateRef);
           chatInputEl.value = "";
@@ -631,11 +631,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       const file = event.target.files[0];
       if (!file || !currentFriendId) return;
 
-      const currentUser = authManager.getCurrentUser();
-      if (!currentUser) return console.error("No current user");
+      const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+      if (!currentUserProfile) return console.error("No current user profile");
 
       try {
-        const filePath = `${currentUser.id}/${Date.now()}_${file.name}`;
+        const filePath = `${currentUserProfile.id}/${Date.now()}_${file.name}`;
         const { data: uploadData, error: uploadError } = await supabaseClient
           .storage
           .from("chat-files")
@@ -664,8 +664,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (messageData && messageData.length > 0) {
           messageData[0].sender = {
-            username: currentUser.username,
-            profile_picture: currentUser.profile_picture || "icons/default-avatar.png"
+            username: currentUserProfile.username, // FIXED: Use profile
+            profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
           };
           appendMessage(messageData[0], lastDateRef);
         }

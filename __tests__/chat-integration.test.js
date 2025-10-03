@@ -88,13 +88,20 @@ describe('Chat Integration Tests', () => {
       channel: jest.fn(() => mockChannel)
     };
     
-    // Mock AuthManager
+    // Mock AuthManager with real test user data (FIXED)
     mockAuthManager = {
       getCurrentUser: jest.fn(() => ({
-        id: 'user-1',
-        email: 'test@example.com',
-        username: 'TestUser',
-        profile_picture: 'test-avatar.png'
+        id: '730b07a9-308c-475a-babb-9c1500986775',
+        email: 'testuser1@example.com'
+      })),
+      getCurrentUserProfile: jest.fn(() => ({
+        id: '730b07a9-308c-475a-babb-9c1500986775',
+        username: 'TestUser1',
+        profile_picture: 'https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png',
+        tag: 'artist',
+        verified: true,
+        premium: false,
+        tester: true
       })),
       isAuthenticated: jest.fn(() => true),
       waitForAuth: jest.fn().mockResolvedValue()
@@ -107,8 +114,8 @@ describe('Chat Integration Tests', () => {
   
   describe('complete message flow', () => {
     test('should send a message and receive it through real-time subscription', async () => {
-      const friendId = 'friend-1';
-      const currentUser = mockAuthManager.getCurrentUser();
+      const friendId = '17ee71db-2320-4419-a88b-fa24780a588b'; // Real test user 2 ID
+      const currentUserProfile = mockAuthManager.getCurrentUserProfile(); // FIXED: Use profile
       const messageText = 'Hello, this is a test message';
       
       // Show chat container
@@ -119,8 +126,8 @@ describe('Chat Integration Tests', () => {
       let messageHandler = null;
       
       const loadChat = async (friendId) => {
-        const currentUser = mockAuthManager.getCurrentUser();
-        if (!currentUser) return console.error('No current user');
+        const currentUserProfile = mockAuthManager.getCurrentUserProfile(); // FIXED: Use profile
+        if (!currentUserProfile) return console.error('No current user profile');
         
         // Clear existing messages
         if (chatMessagesEl) chatMessagesEl.innerHTML = '';
@@ -130,14 +137,14 @@ describe('Chat Integration Tests', () => {
           .from('messages')
           .select('*')
           .or(
-            `and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id})`
+            `and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id})`
           )
           .order('created_at', { ascending: true });
         
         if (error) return console.error('Error loading messages:', error);
         
         // Set up real-time subscription
-        const channelName = `chat-${[currentUser.id, friendId].sort().join('-')}`;
+        const channelName = `chat-${[currentUserProfile.id, friendId].sort().join('-')}`;
         chatChannel = mockSupabaseClient.channel(channelName)
           .on(
             'postgres_changes',
@@ -145,15 +152,15 @@ describe('Chat Integration Tests', () => {
               event: 'INSERT',
               schema: 'public',
               table: 'messages',
-              filter: `or(and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id}))`
+              filter: `or(and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
             },
             async (payload) => {
               const msg = payload.new;
               
-              if (msg.sender_id === currentUser.id) {
+              if (msg.sender_id === currentUserProfile.id) { // FIXED: Use profile ID
                 msg.sender = {
-                  username: currentUser.username,
-                  profile_picture: currentUser.profile_picture || 'icons/default-avatar.png'
+                  username: currentUserProfile.username, // FIXED: Use profile data
+                  profile_picture: currentUserProfile.profile_picture || 'icons/default-avatar.png'
                 };
               } else {
                 const { data: profile } = await mockSupabaseClient
@@ -197,7 +204,7 @@ describe('Chat Integration Tests', () => {
       // Mock the message insertion
       const newMessage = {
         id: 'msg-1',
-        sender_id: currentUser.id,
+        sender_id: currentUserProfile.id, // FIXED: Use profile ID
         receiver_id: friendId,
         message: messageText,
         created_at: new Date().toISOString()
@@ -216,7 +223,7 @@ describe('Chat Integration Tests', () => {
         order: jest.fn().mockReturnThis()
       });
       
-      // Set up the send message handler
+      // Set up the send message handler (FIXED)
       chatSendBtn.addEventListener('click', async () => {
         const message = chatInputEl.value.trim();
         if (!message || !friendId) return;
@@ -224,15 +231,15 @@ describe('Chat Integration Tests', () => {
         try {
           const { data: messageData, error } = await mockSupabaseClient
             .from('messages')
-            .insert([{ sender_id: currentUser.id, receiver_id: friendId, message }])
+            .insert([{ sender_id: currentUserProfile.id, receiver_id: friendId, message }]) // FIXED: Use profile ID
             .select();
           
           if (error) return console.error('Error sending message:', error);
           
           if (messageData && messageData.length > 0) {
             messageData[0].sender = {
-              username: currentUser.username,
-              profile_picture: currentUser.profile_picture || 'icons/default-avatar.png'
+              username: currentUserProfile.username, // FIXED: Use profile data
+              profile_picture: currentUserProfile.profile_picture || 'icons/default-avatar.png'
             };
             appendMessage(messageData[0]);
             chatInputEl.value = '';

@@ -6,9 +6,6 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:setup": "deno run --allow-net --allow-read test-user-setup.js create",
-    "test:verify": "deno run --allow-net --allow-read test-user-setup.js verify",
-    "test:cleanup": "deno run --allow-net --allow-read test-user-setup.js cleanup",
     "start": "node server.js"
   },
   "keywords": [],
@@ -16,7 +13,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@supabase/supabase-js": "^2.58.0",
     "express": "^5.1.0",
+    "jest": "^30.2.0",
     "ws": "^8.18.3"
   },
   "devDependencies": {

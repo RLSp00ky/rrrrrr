@@ -87,19 +87,19 @@ global.TEST_CONFIG = {
   testMode: true,
   testUsers: [
     {
-      id: 'test-user-1-id',
+      id: '730b07a9-308c-475a-babb-9c1500986775',
       email: 'testuser1@example.com',
       username: 'TestUser1',
-      tag: 'Developer',
+      tag: 'artist',
       verified: true,
       premium: false,
       tester: true
     },
     {
-      id: 'test-user-2-id',
+      id: '17ee71db-2320-4419-a88b-fa24780a588b',
       email: 'testuser2@example.com',
       username: 'TestUser2',
-      tag: 'Designer',
+      tag: 'producer',
       verified: false,
       premium: true,
       tester: false

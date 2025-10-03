@@ -5,7 +5,7 @@
       "email": "testuser1@example.com",
       "password": "TestPassword123!",
       "username": "TestUser1",
-      "tag": "Developer",
+      "tag": "artist",
       "verified": true,
       "premium": false,
       "tester": true
@@ -14,7 +14,7 @@
       "email": "testuser2@example.com",
       "password": "TestPassword123!",
       "username": "TestUser2",
-      "tag": "Designer",
+      "tag": "producer",
       "verified": false,
       "premium": true,
       "tester": false

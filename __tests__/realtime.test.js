@@ -42,12 +42,20 @@ describe('Real-time Message Subscriptions', () => {
       channel: jest.fn(() => mockChannel)
     };
     
-    // Mock AuthManager
+    // Mock AuthManager with real test user data (FIXED)
     mockAuthManager = {
       getCurrentUser: jest.fn(() => ({
-        id: 'user-1',
-        email: 'test@example.com',
-        username: 'TestUser'
+        id: '730b07a9-308c-475a-babb-9c1500986775',
+        email: 'testuser1@example.com'
+      })),
+      getCurrentUserProfile: jest.fn(() => ({
+        id: '730b07a9-308c-475a-babb-9c1500986775',
+        username: 'TestUser1',
+        profile_picture: 'https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png',
+        tag: 'artist',
+        verified: true,
+        premium: false,
+        tester: true
       })),
       isAuthenticated: jest.fn(() => true),
       waitForAuth: jest.fn().mockResolvedValue()
@@ -60,21 +68,21 @@ describe('Real-time Message Subscriptions', () => {
   
   describe('subscription setup', () => {
     test('should create a real-time subscription for chat messages', async () => {
-      const friendId = 'friend-1';
-      const currentUser = mockAuthManager.getCurrentUser();
+      const friendId = '17ee71db-2320-4419-a88b-fa24780a588b'; // Real test user 2 ID
+      const currentUserProfile = mockAuthManager.getCurrentUserProfile(); // FIXED: Use profile
       
       // Simulate the loadChat function which sets up the subscription
-      const channelName = `chat-${[currentUser.id, friendId].sort().join('-')}`;
+      const channelName = `chat-${[currentUserProfile.id, friendId].sort().join('-')}`;
       
       const loadChat = async (friendId) => {
-        const currentUser = mockAuthManager.getCurrentUser();
-        if (!currentUser) return console.error('No current user');
+        const currentUserProfile = mockAuthManager.getCurrentUserProfile(); // FIXED: Use profile
+        if (!currentUserProfile) return console.error('No current user profile');
         
         // Clear existing messages
         if (chatMessagesEl) chatMessagesEl.innerHTML = '';
         
         // Set up real-time subscription
-        const channelName = `chat-${[currentUser.id, friendId].sort().join('-')}`;
+        const channelName = `chat-${[currentUserProfile.id, friendId].sort().join('-')}`;
         const chatChannel = mockSupabaseClient.channel(channelName)
           .on(
             'postgres_changes',
@@ -82,16 +90,16 @@ describe('Real-time Message Subscriptions', () => {
               event: 'INSERT',
               schema: 'public',
               table: 'messages',
-              filter: `or(and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id}))`
+              filter: `or(and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
             },
             async (payload) => {
               // Handle incoming message
               const msg = payload.new;
               
-              if (msg.sender_id === currentUser.id) {
+              if (msg.sender_id === currentUserProfile.id) { // FIXED: Use profile ID
                 msg.sender = {
-                  username: currentUser.username,
-                  profile_picture: currentUser.profile_picture || 'icons/default-avatar.png'
+                  username: currentUserProfile.username, // FIXED: Use profile data
+                  profile_picture: currentUserProfile.profile_picture || 'icons/default-avatar.png'
                 };
               } else {
                 // Fetch sender profile
@@ -290,11 +298,11 @@ describe('Real-time Message Subscriptions', () => {
     });
     
     test('should handle messages from the current user', async () => {
-      const friendId = 'friend-1';
-      const currentUser = mockAuthManager.getCurrentUser();
+      const friendId = '17ee71db-2320-4419-a88b-fa24780a588b'; // Real test user 2 ID
+      const currentUserProfile = mockAuthManager.getCurrentUserProfile(); // FIXED: Use profile
       
       // Set up the subscription
-      const channelName = `chat-${[currentUser.id, friendId].sort().join('-')}`;
+      const channelName = `chat-${[currentUserProfile.id, friendId].sort().join('-')}`;
       let messageHandler = null;
       
       mockChannel.on.mockImplementation((event, filter, handler) => {
@@ -304,7 +312,7 @@ describe('Real-time Message Subscriptions', () => {
         return mockChannel;
       });
       
-      // Simulate loadChat
+      // Simulate loadChat (FIXED)
       const chatChannel = mockSupabaseClient.channel(channelName)
         .on(
           'postgres_changes',
@@ -312,15 +320,15 @@ describe('Real-time Message Subscriptions', () => {
             event: 'INSERT',
             schema: 'public',
             table: 'messages',
-            filter: `or(and(sender_id.eq.${currentUser.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUser.id}))`
+            filter: `or(and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
           },
           async (payload) => {
             const msg = payload.new;
             
-            if (msg.sender_id === currentUser.id) {
+            if (msg.sender_id === currentUserProfile.id) { // FIXED: Use profile ID
               msg.sender = {
-                username: currentUser.username,
-                profile_picture: currentUser.profile_picture || 'icons/default-avatar.png'
+                username: currentUserProfile.username, // FIXED: Use profile data
+                profile_picture: currentUserProfile.profile_picture || 'icons/default-avatar.png'
               };
             } else {
               const { data: profile } = await mockSupabaseClient
@@ -350,7 +358,7 @@ describe('Real-time Message Subscriptions', () => {
       // Simulate receiving a message from current user
       const outgoingMessage = {
         id: 'msg-3',
-        sender_id: currentUser.id,
+        sender_id: currentUserProfile.id, // FIXED: Use profile ID
         receiver_id: friendId,
         message: 'Message from me',
         created_at: new Date().toISOString()
