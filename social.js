@@ -560,8 +560,22 @@ document.addEventListener("DOMContentLoaded", async () => {
             msg.sender = profile || { username: "Unknown", profile_picture: "icons/default-avatar.png" };
           }
 
-          appendMessage(msg, lastDateRef);
-          animateScrollToBottom(200); // scroll down when new message arrives
+          // Re-query DOM elements to ensure fresh references
+          const chatMessagesEl = document.getElementById("chat-messages");
+          const chatContainer = document.getElementById("chat-container");
+          
+          // Ensure the chat container is visible before appending message
+          if (chatContainer && chatContainer.style.display === "none") {
+            chatContainer.style.display = "flex";
+          }
+
+          // Append the message to the UI if we have a valid element
+          if (chatMessagesEl) {
+            appendMessage(msg, lastDateRef);
+            animateScrollToBottom(200); // scroll down when new message arrives
+          } else {
+            console.error("Chat messages element not found when trying to append real-time message");
+          }
         }
       )
       .subscribe();
