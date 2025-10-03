@@ -114,9 +114,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Default assets
-    const pfpUrl = "https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png";
-    const bannerUrl = "https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultbanner.png";
+    // Default assets - these will be replaced by environment config on client side
+    const pfpUrl = "/default/defaultpfp.png";
+    const bannerUrl = "/default/defaultbanner.png";
     const defaultBio = "This user has not edited their bio in settings yet";
     
     // Insert into profiles (UUID, username, tag, etc.)

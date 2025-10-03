@@ -5,9 +5,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { readFileSync } from 'https://deno.land/std@0.177.0/fs/mod.ts';
 
+// Import required modules
+require('dotenv').config({ path: '../.env' });
+
 // Supabase configuration
-const supabaseUrl = 'https://tevtrhkabycoddnwssar.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRldnRyaGthYnljb2Rkbndzc2FyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Njc5ODc1MywiZXhwIjoyMDcyMzc0NzUzfQ.pBfkSsN_x5-t9y2GlOVKKbG8GjvlHNfKjvvXNPZvyUQ';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_ANON_KEY; // Using anon key for now, add service key to .env if needed
 
 // Create Supabase client with service role key for admin operations
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
@@ -65,8 +68,8 @@ async function createTestUser(userData) {
     console.log(`User created/fetched with ID: ${userId}`);
 
     // Default assets
-    const pfpUrl = "https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png";
-    const bannerUrl = "https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultbanner.png";
+    const pfpUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/default/defaultpfp.png`;
+    const bannerUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/default/defaultbanner.png`;
     const defaultBio = "Test user for automated testing";
 
     // Create or update the user's profile

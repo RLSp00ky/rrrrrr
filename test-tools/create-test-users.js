@@ -72,8 +72,8 @@ async function createTestUser(userData) {
     console.log(`User created/fetched with ID: ${userId}`);
 
     // Default assets
-    const pfpUrl = "https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png";
-    const bannerUrl = "https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultbanner.png";
+    const pfpUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/default/defaultpfp.png`;
+    const bannerUrl = `${process.env.SUPABASE_URL}/storage/v1/object/public/default/defaultbanner.png`;
     const defaultBio = "Test user for automated testing";
 
     // Create or update the user's profile

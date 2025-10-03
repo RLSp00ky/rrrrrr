@@ -55,7 +55,7 @@ describe('Chat Core Functions', () => {
       getCurrentUserProfile: jest.fn(() => ({
         id: '730b07a9-308c-475a-babb-9c1500986775',
         username: 'TestUser1',
-        profile_picture: 'https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png',
+        profile_picture: `${process.env.SUPABASE_URL}/storage/v1/object/public/default/defaultpfp.png`,
         tag: 'artist',
         verified: true,
         premium: false,
@@ -393,7 +393,7 @@ describe('Chat Core Functions', () => {
       expect(chatInputEl.value).toBe('');
       // Verify the message has correct sender data
       expect(messageData[0].sender.username).toBe('TestUser1');
-      expect(messageData[0].sender.profile_picture).toBe('https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png');
+      expect(messageData[0].sender.profile_picture).toBe(`${process.env.SUPABASE_URL}/storage/v1/object/public/default/defaultpfp.png`);
     });
     
     test('should not send empty messages', () => {
