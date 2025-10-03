@@ -3,9 +3,12 @@
 // Import required modules
 const { createClient } = require('@supabase/supabase-js');
 
+// Import required modules
+require('dotenv').config({ path: '../.env' });
+
 // Supabase configuration
-const supabaseUrl = 'https://tevtrhkabycoddnwssar.supabase.co';
-const supabaseServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRldnRyaGthYnljb2Rkbndzc2FyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1Njc5ODc1MywiZXhwIjoyMDcyMzc0NzUzfQ.pBfkSsN_x5-t9y2GlOVKKbG8GjvlHNfKjvvXNPZvyUQ';
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_ANON_KEY; // Using anon key for now, add service key to .env if needed
 
 // Create Supabase client with service role key for admin operations
 const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {

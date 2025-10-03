@@ -8,8 +8,9 @@ describe('Auth User vs Profile Bug Proof', () => {
   beforeAll(async () => {
     // Use actual Supabase client
     const { createClient } = require('@supabase/supabase-js');
-    const supabaseUrl = 'https://tevtrhkabycoddnwssar.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRldnRyaGthYnljb2Rkbndzc2FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTg3NTMsImV4cCI6MjA3MjM3NDc1M30.icqgrtyNhBKoHXk5RP4EzElG_4EMUKI3YihdUblr4w4';
+    require('dotenv').config();
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
     
     supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
@@ -84,7 +85,7 @@ describe('Auth User vs Profile Bug Proof', () => {
     
     // PROVE THE FIX WORKS
     expect(messageWithFixedSender.sender.username).toBe('TestUser1');
-    expect(messageWithFixedSender.sender.profile_picture).toBe('https://tevtrhkabycoddnwssar.supabase.co/storage/v1/object/public/default/defaultpfp.png');
+    expect(messageWithFixedSender.sender.profile_picture).toBe(`${process.env.SUPABASE_URL}/storage/v1/object/public/default/defaultpfp.png`);
   });
   
   test('should prove real-time handler has same bug', () => {

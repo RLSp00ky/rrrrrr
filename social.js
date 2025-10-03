@@ -5,6 +5,23 @@ if (cachedTheme) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
+  // Wait for Supabase client to be initialized by env-config.js
+  let attempts = 0;
+  while (!window.supabaseClient && attempts < 40) {
+    // Wait up to 2 seconds
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    attempts++;
+  }
+
+  if (!window.supabaseClient) {
+    console.error("❌ Supabase client not initialized after waiting");
+    return;
+  }
+
+  console.log(
+    "✅ Supabase client ready, proceeding with social initialization",
+  );
+
   console.log("🔐 Waiting for authentication...");
   await authManager.waitForAuth();
 
@@ -13,13 +30,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  console.log("✅ User authenticated, applying theme, updating navbar, and fetching friends...");
+  console.log(
+    "✅ User authenticated, applying theme, updating navbar, and fetching friends...",
+  );
 
   await applySavedTheme();
   updateThemeAssets();
 
   const observer = new MutationObserver(updateThemeAssets);
-  observer.observe(document.body, { attributes: true, attributeFilter: ["data-theme"] });
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
 
   // ---------- NAVBAR ----------
   const currentUserProfile = authManager.getCurrentUserProfile();
@@ -86,7 +108,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     userWrapper.appendChild(badgesContainer);
     navbarTitle.appendChild(userWrapper);
-    console.log("👤 Navbar username and badges set:", currentUserProfile.username);
+    console.log(
+      "👤 Navbar username and badges set:",
+      currentUserProfile.username,
+    );
   }
 
   // ---------- FRIENDS PANEL ----------
@@ -136,7 +161,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const theme = document.body.getAttribute("data-theme");
     const logo = document.getElementById("logo-img");
     if (logo) {
-      logo.src = (["dark", "onyx", "red", "blue", "green", "purple", "pink"].includes(theme))
+      logo.src = [
+        "dark",
+        "onyx",
+        "red",
+        "blue",
+        "green",
+        "purple",
+        "pink",
+      ].includes(theme)
         ? "icons/logo.png"
         : "icons/logo-light.png";
     }
@@ -152,12 +185,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       const { data: friendsData, error } = await supabaseClient
         .from("friends")
         .select("requester_id, receiver_id")
-        .or(`requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+        .or(
+          `requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`,
+        )
         .eq("status", "accepted");
 
       if (error) throw error;
 
-      const friendIds = friendsData.map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
+      const friendIds = friendsData.map((f) =>
+        f.requester_id === currentUser.id ? f.receiver_id : f.requester_id,
+      );
       if (friendIds.length === 0) {
         friendsContainer.innerHTML = "<p>No friends yet</p>";
         return;
@@ -172,7 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       friendsContainer.innerHTML = "";
 
-      profiles.forEach(profile => {
+      profiles.forEach((profile) => {
         const div = document.createElement("div");
         div.className = "friend-item";
         div.style.display = "flex";
@@ -208,9 +245,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         badgesContainer.style.alignItems = "center";
         badgesContainer.style.marginLeft = "15px";
 
-        if (profile.verified) badgesContainer.appendChild(createBadge("verified.png"));
-        if (profile.premium) badgesContainer.appendChild(createBadge("premium.png"));
-        if (profile.tester) badgesContainer.appendChild(createBadge("tester.png"));
+        if (profile.verified)
+          badgesContainer.appendChild(createBadge("verified.png"));
+        if (profile.premium)
+          badgesContainer.appendChild(createBadge("premium.png"));
+        if (profile.tester)
+          badgesContainer.appendChild(createBadge("tester.png"));
 
         usernameWrapper.appendChild(usernameH1);
         usernameWrapper.appendChild(badgesContainer);
@@ -219,7 +259,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         friendsContainer.appendChild(div);
 
         div.addEventListener("click", async () => {
-          document.querySelectorAll(".friend-item").forEach(item => {
+          document.querySelectorAll(".friend-item").forEach((item) => {
             item.classList.remove("selected");
             item.style.backgroundColor = "";
           });
@@ -229,24 +269,32 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (chatContainer) chatContainer.style.display = "flex";
 
           const chatHeaderImg = document.getElementById("chat-header-img");
-          const chatHeaderUsername = document.getElementById("chat-header-username");
-          const chatHeaderBadges = document.getElementById("chat-header-badges");
+          const chatHeaderUsername = document.getElementById(
+            "chat-header-username",
+          );
+          const chatHeaderBadges =
+            document.getElementById("chat-header-badges");
 
-          if (chatHeaderImg) chatHeaderImg.src = profile.profile_picture || "icons/default-avatar.png";
-          if (chatHeaderUsername) chatHeaderUsername.textContent = profile.username;
+          if (chatHeaderImg)
+            chatHeaderImg.src =
+              profile.profile_picture || "icons/default-avatar.png";
+          if (chatHeaderUsername)
+            chatHeaderUsername.textContent = profile.username;
 
           // Update chat header badges
           if (chatHeaderBadges) {
             chatHeaderBadges.innerHTML = "";
-            if (profile.verified) chatHeaderBadges.appendChild(createBadge("verified.png"));
-            if (profile.premium) chatHeaderBadges.appendChild(createBadge("premium.png"));
-            if (profile.tester) chatHeaderBadges.appendChild(createBadge("tester.png"));
+            if (profile.verified)
+              chatHeaderBadges.appendChild(createBadge("verified.png"));
+            if (profile.premium)
+              chatHeaderBadges.appendChild(createBadge("premium.png"));
+            if (profile.tester)
+              chatHeaderBadges.appendChild(createBadge("tester.png"));
           }
 
           await loadChat(profile.id);
         });
       });
-
     } catch (err) {
       console.error("Error fetching friends:", err);
       friendsContainer.innerHTML = "<p>Error loading friends</p>";
@@ -293,7 +341,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (isSameDay(date, today)) return "Today";
     if (isSameDay(date, yesterday)) return "Yesterday";
-    return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
 
   function appendMessage(msg, lastDateRefParam) {
@@ -359,15 +411,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     badgesContainer.style.alignItems = "center";
     badgesContainer.style.marginLeft = "6px";
 
-    if (msg.sender?.verified) badgesContainer.appendChild(createBadge("verified.png"));
-    if (msg.sender?.premium) badgesContainer.appendChild(createBadge("premium.png"));
-    if (msg.sender?.tester) badgesContainer.appendChild(createBadge("tester.png"));
+    if (msg.sender?.verified)
+      badgesContainer.appendChild(createBadge("verified.png"));
+    if (msg.sender?.premium)
+      badgesContainer.appendChild(createBadge("premium.png"));
+    if (msg.sender?.tester)
+      badgesContainer.appendChild(createBadge("tester.png"));
 
     headerRow.appendChild(usernameSpan);
     headerRow.appendChild(badgesContainer);
 
     const timeSpan = document.createElement("span");
-    timeSpan.textContent = msgDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    timeSpan.textContent = msgDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
     timeSpan.style.fontSize = "11px";
     timeSpan.style.color = "var(--text-color)";
     timeSpan.style.fontWeight = "bold";
@@ -436,10 +494,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     div.appendChild(img);
     div.appendChild(content);
 
-    const isAtBottom = chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <= chatMessagesEl.clientHeight + 50;
+    const isAtBottom =
+      chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <=
+      chatMessagesEl.clientHeight + 50;
     chatMessagesEl.appendChild(div);
 
-    if (isAtBottom) chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "smooth" });
+    if (isAtBottom)
+      chatMessagesEl.scrollTo({
+        top: chatMessagesEl.scrollHeight,
+        behavior: "smooth",
+      });
   }
 
   // ---------- SCROLL-TO-BOTTOM BUTTON ----------
@@ -452,7 +516,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     scrollBtn.addEventListener("click", () => {
-      chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "smooth" });
+      chatMessagesEl.scrollTo({
+        top: chatMessagesEl.scrollHeight,
+        behavior: "smooth",
+      });
     });
   }
 
@@ -466,7 +533,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       .from("messages")
       .select("*")
       .or(
-        `and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
+        `and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`,
       )
       .order("created_at", { ascending: true });
 
@@ -495,7 +562,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     messagesWithProfiles.forEach((msg) => appendMessage(msg, lastDateRef));
 
     if (chatMessagesEl) {
-      chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "auto" });
+      chatMessagesEl.scrollTo({
+        top: chatMessagesEl.scrollHeight,
+        behavior: "auto",
+      });
     }
 
     if (chatChannel) chatChannel.unsubscribe();
@@ -506,7 +576,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       .channel(channelName)
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
+
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${currentUserProfile.id}&sender_id=eq.${friendId}`,
+        },
         async (payload) => {
           const msg = payload.new;
           if (msg.sender_id === currentUserProfile.id) return;
@@ -528,14 +604,19 @@ document.addEventListener("DOMContentLoaded", async () => {
           appendMessage(msg, lastDateRef);
 
           // ---------- NOTIFICATION SOUND ----------
-          const isChatHidden = !chatContainer || chatContainer.style.display === "none";
+          const isChatHidden =
+            !chatContainer || chatContainer.style.display === "none";
           const isTabHidden = document.hidden;
 
           if (isChatHidden || isTabHidden) {
             const audio = new Audio("sounds/notification.wav");
-            audio.play().catch(err => console.error("Error playing notification sound:", err));
+            audio
+              .play()
+              .catch((err) =>
+                console.error("Error playing notification sound:", err),
+              );
           }
-        }
+        },
       )
       .subscribe();
   }
@@ -553,7 +634,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const { data: messageData, error } = await supabaseClient
           .from("messages")
-          .insert([{ sender_id: currentUserProfile.id, receiver_id: currentFriendId, message }])
+          .insert([
+            {
+              sender_id: currentUserProfile.id,
+              receiver_id: currentFriendId,
+              message,
+            },
+          ])
           .select();
 
         if (error) return console.error("Error sending message:", error);
@@ -579,7 +666,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ---------- FILE UPLOAD ----------
-  if (uploadBtnEl && fileInputEl) uploadBtnEl.addEventListener("click", () => fileInputEl.click());
+  if (uploadBtnEl && fileInputEl)
+    uploadBtnEl.addEventListener("click", () => fileInputEl.click());
 
   if (fileInputEl) {
     fileInputEl.addEventListener("change", async (event) => {
@@ -591,15 +679,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       try {
         const filePath = `${currentUserProfile.id}/${Date.now()}_${file.name}`;
-        const { error: uploadError } = await supabaseClient.storage.from("chat-files").upload(filePath, file);
+        const { error: uploadError } = await supabaseClient.storage
+          .from("chat-files")
+          .upload(filePath, file);
         if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = supabaseClient.storage.from("chat-files").getPublicUrl(filePath);
+        const { data: publicUrlData } = supabaseClient.storage
+          .from("chat-files")
+          .getPublicUrl(filePath);
         const fileUrl = publicUrlData.publicUrl;
 
         const { data: messageData, error: messageError } = await supabaseClient
           .from("messages")
-          .insert([{ sender_id: currentUserProfile.id, receiver_id: currentFriendId, message: file.name, file_url: fileUrl }])
+          .insert([
+            {
+              sender_id: currentUserProfile.id,
+              receiver_id: currentFriendId,
+              message: file.name,
+              file_url: fileUrl,
+            },
+          ])
           .select();
 
         if (messageError) throw messageError;
