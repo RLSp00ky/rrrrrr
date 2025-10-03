@@ -9,6 +9,19 @@ const cachedTheme = localStorage.getItem("user-theme");
   }
 
 document.addEventListener("DOMContentLoaded", async () => {
+    // Wait for Supabase client to be initialized by env-config.js
+    let attempts = 0;
+    while (!window.supabaseClient && attempts < 40) { // Wait up to 2 seconds
+        await new Promise(resolve => setTimeout(resolve, 50));
+        attempts++;
+    }
+    
+    if (!window.supabaseClient) {
+        console.error('❌ Supabase client not initialized after waiting');
+        return;
+    }
+    
+
 
     console.log("🔐 Waiting for authentication...");
     await authManager.waitForAuth();

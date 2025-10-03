@@ -1,10 +1,18 @@
-const supabaseUrl = 'https://tevtrhkabycoddnwssar.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRldnRyaGthYnljb2Rkbndzc2FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY3OTg3NTMsImV4cCI6MjA3MjM3NDc1M30.icqgrtyNhBKoHXk5RP4EzElG_4EMUKI3YihdUblr4w4';
+// Environment variables will be loaded by env-config.js
+let SUPABASE_URL, SUPABASE_ANON_KEY;
 
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,      
-    autoRefreshToken: true,    
-    detectSessionInUrl: true,  
-  },
-});
+// Function to initialize Supabase client with environment values
+window.initSupabaseFromEnv = (config) => {
+  SUPABASE_URL = config.SUPABASE_URL;
+  SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY;
+  
+  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,      
+      autoRefreshToken: true,    
+      detectSessionInUrl: true,  
+    },
+  });
+  
+  window.supabaseClient = supabaseClient;
+};

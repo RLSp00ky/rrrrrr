@@ -4,8 +4,12 @@ class AuthManager {
         this.currentUserProfile = null;
         this.authStateReady = false;
         this.authStatePromise = null;
+        this.autoInit = true;
 
-        this.init();
+        // Only auto-init if supabaseClient is already available
+        if (window.supabaseClient) {
+            this.init();
+        }
     }
 
     async init() {

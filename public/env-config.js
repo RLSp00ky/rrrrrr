@@ -50,3 +50,12 @@ class EnvConfig {
 // Export a singleton instance
 const envConfig = new EnvConfig();
 window.envConfig = envConfig;
+
+// Auto-load and initialize Supabase if the init function exists
+envConfig.load().then(config => {
+  if (window.initSupabaseFromEnv) {
+    window.initSupabaseFromEnv(config);
+  }
+}).catch(error => {
+  console.error('Failed to load environment config:', error);
+});
