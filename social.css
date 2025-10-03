@@ -402,6 +402,7 @@ color: var(--navbar-color);
 }
 
 #chat-messages {
+  border: solid 2px var(--card-border);
   flex: 1; 
   padding-right:20px;
   padding: 10px;

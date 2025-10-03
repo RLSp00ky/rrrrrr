@@ -203,52 +203,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         usernameH1.style.lineHeight = "1";
         usernameH1.textContent = profile.username;
 
-        usernameWrapper.appendChild(usernameH1);
-
         const badgesContainer = document.createElement("span");
         badgesContainer.style.display = "flex";
         badgesContainer.style.alignItems = "center";
-        badgesContainer.style.marginLeft = "6px";
+        badgesContainer.style.marginLeft = "15px";
 
-        if (profile.verified) {
-          const verifiedBadge = document.createElement("img");
-          verifiedBadge.src = "verified.png";
-          verifiedBadge.alt = "Verified";
-          verifiedBadge.style.width = "16px";
-          verifiedBadge.style.height = "16px";
-          verifiedBadge.style.borderRadius = "50%";
-          verifiedBadge.style.border = "solid 2px var(--text-color)";
-          verifiedBadge.style.backgroundColor = "white";
-          verifiedBadge.style.marginLeft = "4px";
-          badgesContainer.appendChild(verifiedBadge);
-        }
+        if (profile.verified) badgesContainer.appendChild(createBadge("verified.png"));
+        if (profile.premium) badgesContainer.appendChild(createBadge("premium.png"));
+        if (profile.tester) badgesContainer.appendChild(createBadge("tester.png"));
 
-        if (profile.premium) {
-          const premiumBadge = document.createElement("img");
-          premiumBadge.src = "premium.png";
-          premiumBadge.alt = "Premium";
-          premiumBadge.style.width = "16px";
-          premiumBadge.style.height = "16px";
-          premiumBadge.style.borderRadius = "50%";
-          premiumBadge.style.border = "solid 2px var(--text-color)";
-          premiumBadge.style.backgroundColor = "white";
-          premiumBadge.style.marginLeft = "4px";
-          badgesContainer.appendChild(premiumBadge);
-        }
-
-        if (profile.tester) {
-          const testerBadge = document.createElement("img");
-          testerBadge.src = "tester.png";
-          testerBadge.alt = "Tester";
-          testerBadge.style.width = "16px";
-          testerBadge.style.height = "16px";
-          testerBadge.style.borderRadius = "50%";
-          testerBadge.style.border = "solid 2px var(--text-color)";
-          testerBadge.style.backgroundColor = "white";
-          testerBadge.style.marginLeft = "4px";
-          badgesContainer.appendChild(testerBadge);
-        }
-
+        usernameWrapper.appendChild(usernameH1);
         usernameWrapper.appendChild(badgesContainer);
         div.appendChild(img);
         div.appendChild(usernameWrapper);
@@ -266,8 +230,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           const chatHeaderImg = document.getElementById("chat-header-img");
           const chatHeaderUsername = document.getElementById("chat-header-username");
+          const chatHeaderBadges = document.getElementById("chat-header-badges");
+
           if (chatHeaderImg) chatHeaderImg.src = profile.profile_picture || "icons/default-avatar.png";
           if (chatHeaderUsername) chatHeaderUsername.textContent = profile.username;
+
+          // Update chat header badges
+          if (chatHeaderBadges) {
+            chatHeaderBadges.innerHTML = "";
+            if (profile.verified) chatHeaderBadges.appendChild(createBadge("verified.png"));
+            if (profile.premium) chatHeaderBadges.appendChild(createBadge("premium.png"));
+            if (profile.tester) chatHeaderBadges.appendChild(createBadge("tester.png"));
+          }
 
           await loadChat(profile.id);
         });
@@ -279,22 +253,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  function createBadge(src) {
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "Badge";
+    img.style.width = "18px";
+    img.style.height = "18px";
+    img.style.borderRadius = "50%";
+    img.style.border = "solid 2px var(--text-color)";
+    img.style.backgroundColor = "white";
+    img.style.marginLeft = "5px";
+    return img;
+  }
+
   // ---------- CHAT ----------
   const chatMessagesEl = document.getElementById("chat-messages");
   const chatInputEl = document.getElementById("chat-message-input");
   const chatSendBtn = document.getElementById("chat-send-btn");
   const fileInputEl = document.getElementById("file-upload");
   const uploadBtnEl = document.getElementById("upload-btn");
-  const scrollBtn = document.getElementById("scroll-to-bottom"); // <-- scroll button
+  const scrollBtn = document.getElementById("scroll-to-bottom");
+
   let currentFriendId = null;
   let chatChannel = null;
   let lastDateRef = { value: null };
 
-  // Helper: check same day
   function isSameDay(a, b) {
-    return a.getFullYear() === b.getFullYear() &&
+    return (
+      a.getFullYear() === b.getFullYear() &&
       a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate();
+      a.getDate() === b.getDate()
+    );
   }
 
   function formatDateLabel(date) {
@@ -312,7 +301,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const msgDate = msg.created_at ? new Date(msg.created_at) : new Date();
     const dateLabel = formatDateLabel(msgDate);
-
     const lastRef = lastDateRefParam || lastDateRef;
 
     if (lastRef.value !== dateLabel) {
@@ -328,6 +316,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const div = document.createElement("div");
+    div.style.paddingTop = "4px";
+    div.style.paddingLeft = "4px";
+    div.style.borderRadius = "15px";
+    div.style.border = "solid 3px var(--card-border)";
     div.style.display = "flex";
     div.style.alignItems = "flex-start";
     div.style.marginBottom = "10px";
@@ -354,7 +346,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const headerRow = document.createElement("div");
     headerRow.style.display = "flex";
-    headerRow.style.justifyContent = "space-between";
     headerRow.style.alignItems = "center";
     headerRow.style.marginBottom = "4px";
 
@@ -362,6 +353,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     usernameSpan.textContent = msg.sender?.username || "Unknown";
     usernameSpan.style.fontSize = "17px";
     usernameSpan.style.fontWeight = "bold";
+
+    const badgesContainer = document.createElement("span");
+    badgesContainer.style.display = "flex";
+    badgesContainer.style.alignItems = "center";
+    badgesContainer.style.marginLeft = "6px";
+
+    if (msg.sender?.verified) badgesContainer.appendChild(createBadge("verified.png"));
+    if (msg.sender?.premium) badgesContainer.appendChild(createBadge("premium.png"));
+    if (msg.sender?.tester) badgesContainer.appendChild(createBadge("tester.png"));
+
+    headerRow.appendChild(usernameSpan);
+    headerRow.appendChild(badgesContainer);
 
     const timeSpan = document.createElement("span");
     timeSpan.textContent = msgDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -372,9 +375,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     timeSpan.style.padding = "2px 6px";
     timeSpan.style.borderRadius = "10px";
     timeSpan.style.marginLeft = "10px";
-
-    headerRow.appendChild(usernameSpan);
     headerRow.appendChild(timeSpan);
+
     content.appendChild(headerRow);
 
     if (msg.file_url) {
@@ -387,6 +389,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         imgEl.alt = "Image";
         imgEl.style.maxWidth = "200px";
         imgEl.style.borderRadius = "12px";
+        imgEl.style.border = "3px solid var(--card-border)";
         imgEl.style.marginTop = "4px";
         content.appendChild(imgEl);
       } else if (isAudio) {
@@ -432,69 +435,31 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     div.appendChild(img);
     div.appendChild(content);
+
+    const isAtBottom = chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <= chatMessagesEl.clientHeight + 50;
     chatMessagesEl.appendChild(div);
 
-    // Auto-scroll if user is near bottom
-    if (chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <= chatMessagesEl.clientHeight + 50) {
-      chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "smooth" });
-    }
+    if (isAtBottom) chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "smooth" });
   }
 
   // ---------- SCROLL-TO-BOTTOM BUTTON ----------
   if (chatMessagesEl && scrollBtn) {
-    // Show/hide button based on scroll
     chatMessagesEl.addEventListener("scroll", () => {
-      const isAtBottom = chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <= chatMessagesEl.clientHeight + 50;
+      const isAtBottom =
+        chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <=
+        chatMessagesEl.clientHeight + 50;
       scrollBtn.style.display = isAtBottom ? "none" : "block";
     });
 
-    // Animated scroll function
-    function animateScrollToBottom(duration = 500) {
-      const start = chatMessagesEl.scrollTop;
-      const end = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight;
-      const distance = end - start;
-      const startTime = performance.now();
-
-      function easeInOutQuad(t) {
-        return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // smooth easing
-      }
-
-      function animate(time) {
-        const elapsed = time - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        chatMessagesEl.scrollTop = start + distance * easeInOutQuad(progress);
-
-        if (progress < 1) requestAnimationFrame(animate);
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    scrollBtn.addEventListener("click", () => animateScrollToBottom(500));
+    scrollBtn.addEventListener("click", () => {
+      chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "smooth" });
+    });
   }
 
   // ---------- LOAD CHAT ----------
-  // Helper: smooth scroll to bottom
-  function animateScrollToBottom(duration = 300) {
-    if (!chatMessagesEl) return;
-    const start = chatMessagesEl.scrollTop;
-    const end = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight;
-    const change = end - start;
-    const startTime = performance.now();
-
-    function animate(time) {
-      const elapsed = time - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      chatMessagesEl.scrollTop = start + change * progress;
-      if (progress < 1) requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
-  }
-
   async function loadChat(friendId) {
     currentFriendId = friendId;
-    const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+    const currentUserProfile = authManager.getCurrentUserProfile();
     if (!currentUserProfile) return console.error("No current user profile");
 
     const { data: messages, error } = await supabaseClient
@@ -507,98 +472,73 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (error) return console.error("Error loading messages:", error);
 
-    const senderIds = [...new Set(messages.map(m => m.sender_id))];
+    const senderIds = [...new Set(messages.map((m) => m.sender_id))];
     const { data: profiles } = await supabaseClient
       .from("profiles")
-      .select("id, username, profile_picture")
+      .select("id, username, profile_picture, verified, premium, tester")
       .in("id", senderIds);
 
-    const messagesWithProfiles = messages.map(msg => ({
+    const messagesWithProfiles = messages.map((msg) => ({
       ...msg,
-      sender: profiles.find(p => p.id === msg.sender_id) || {
+      sender: profiles.find((p) => p.id === msg.sender_id) || {
         username: "Unknown",
-        profile_picture: "icons/default-avatar.png"
-      }
+        profile_picture: "icons/default-avatar.png",
+        verified: false,
+        premium: false,
+        tester: false,
+      },
     }));
 
     if (chatMessagesEl) chatMessagesEl.innerHTML = "";
     lastDateRef.value = null;
 
-    messagesWithProfiles.forEach(msg => appendMessage(msg, lastDateRef));
+    messagesWithProfiles.forEach((msg) => appendMessage(msg, lastDateRef));
 
-    // Scroll to bottom smoothly after messages are appended
-    if (chatMessagesEl) animateScrollToBottom(400);
-
-    if (chatChannel) {
-      try { chatChannel.unsubscribe(); } catch (e) {}
+    if (chatMessagesEl) {
+      chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "auto" });
     }
 
+    if (chatChannel) chatChannel.unsubscribe();
+
     const channelName = `chat-${[currentUserProfile.id, friendId].sort().join("-")}`;
-    console.log('Setting up real-time subscription for channel:', channelName);
-    
-    chatChannel = supabaseClient.channel(channelName)
+
+    chatChannel = supabaseClient
+      .channel(channelName)
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `receiver_id=eq.${currentUserProfile.id}`
-        },
-        async payload => {
+        { event: "INSERT", schema: "public", table: "messages" },
+        async (payload) => {
           const msg = payload.new;
+          if (msg.sender_id === currentUserProfile.id) return;
 
-          if (msg.sender_id === currentUserProfile.id) {
-            msg.sender = {
-              username: currentUserProfile.username, // FIXED: Use profile
-              profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
-            };
-          } else {
-            const { data: profile } = await supabaseClient
-              .from("profiles")
-              .select("username, profile_picture")
-              .eq("id", msg.sender_id)
-              .single();
-            msg.sender = profile || { username: "Unknown", profile_picture: "icons/default-avatar.png" };
-          }
+          const { data: profile } = await supabaseClient
+            .from("profiles")
+            .select("username, profile_picture, verified, premium, tester")
+            .eq("id", msg.sender_id)
+            .single();
 
-          console.log('Real-time message received:', msg);
-          
-          // Re-query DOM elements to ensure fresh references
-          const chatMessagesEl = document.getElementById("chat-messages");
-          const chatContainer = document.getElementById("chat-container");
-          
-          // Ensure the chat container is visible before appending message
-          if (chatContainer && chatContainer.style.display === "none") {
-            chatContainer.style.display = "flex";
-          }
+          msg.sender = profile || {
+            username: "Unknown",
+            profile_picture: "icons/default-avatar.png",
+            verified: false,
+            premium: false,
+            tester: false,
+          };
 
-          // Append the message to the UI if we have a valid element
-          if (chatMessagesEl) {
-            console.log('🔥 About to append message to UI...');
-            appendMessage(msg, lastDateRef);
-            animateScrollToBottom(200); // scroll down when new message arrives
-            console.log('🔥 Real-time message added to UI successfully!');
-          } else {
-            console.error("Chat messages element not found when trying to append real-time message");
+          appendMessage(msg, lastDateRef);
+
+          // ---------- NOTIFICATION SOUND ----------
+          const isChatHidden = !chatContainer || chatContainer.style.display === "none";
+          const isTabHidden = document.hidden;
+
+          if (isChatHidden || isTabHidden) {
+            const audio = new Audio("sounds/notification.wav");
+            audio.play().catch(err => console.error("Error playing notification sound:", err));
           }
         }
       )
-      .subscribe((status, err) => {
-        console.log('🔔 SUBSCRIPTION STATUS:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Real-time chat subscription established');
-          console.log('🔔 Now listening for messages on channel:', channelName);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Real-time chat subscription error:', err);
-        } else if (status === 'TIMED_OUT') {
-          console.error('❌ Real-time chat subscription timed out');
-        } else if (status === 'CLOSED') {
-          console.log('❌ Real-time chat subscription closed');
-        }
-      });
+      .subscribe();
   }
-
 
   // ---------- SEND MESSAGE ----------
   if (chatSendBtn) {
@@ -607,7 +547,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const message = chatInputEl.value.trim();
       if (!message || !currentFriendId) return;
 
-      const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+      const currentUserProfile = authManager.getCurrentUserProfile();
       if (!currentUserProfile) return console.error("No current user profile");
 
       try {
@@ -618,11 +558,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (error) return console.error("Error sending message:", error);
 
-        if (messageData && messageData.length > 0) {
-          messageData[0].sender = {
-            username: currentUserProfile.username, // FIXED: Use profile
-            profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
-          };
+        if (messageData?.length > 0) {
+          messageData[0].sender = currentUserProfile;
           appendMessage(messageData[0], lastDateRef);
           chatInputEl.value = "";
         }
@@ -633,10 +570,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (chatInputEl) {
-    chatInputEl.addEventListener("keypress", e => {
+    chatInputEl.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        if (chatSendBtn) chatSendBtn.click();
+        chatSendBtn?.click();
       }
     });
   }
@@ -649,42 +586,26 @@ document.addEventListener("DOMContentLoaded", async () => {
       const file = event.target.files[0];
       if (!file || !currentFriendId) return;
 
-      const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+      const currentUserProfile = authManager.getCurrentUserProfile();
       if (!currentUserProfile) return console.error("No current user profile");
 
       try {
         const filePath = `${currentUserProfile.id}/${Date.now()}_${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabaseClient
-          .storage
-          .from("chat-files")
-          .upload(filePath, file);
-
+        const { error: uploadError } = await supabaseClient.storage.from("chat-files").upload(filePath, file);
         if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = supabaseClient
-          .storage
-          .from("chat-files")
-          .getPublicUrl(filePath);
-
+        const { data: publicUrlData } = supabaseClient.storage.from("chat-files").getPublicUrl(filePath);
         const fileUrl = publicUrlData.publicUrl;
 
         const { data: messageData, error: messageError } = await supabaseClient
           .from("messages")
-          .insert([{
-            sender_id: currentUser.id,
-            receiver_id: currentFriendId,
-            message: file.name,
-            file_url: fileUrl
-          }])
+          .insert([{ sender_id: currentUserProfile.id, receiver_id: currentFriendId, message: file.name, file_url: fileUrl }])
           .select();
 
         if (messageError) throw messageError;
 
-        if (messageData && messageData.length > 0) {
-          messageData[0].sender = {
-            username: currentUserProfile.username, // FIXED: Use profile
-            profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
-          };
+        if (messageData?.length > 0) {
+          messageData[0].sender = currentUserProfile;
           appendMessage(messageData[0], lastDateRef);
         }
 
