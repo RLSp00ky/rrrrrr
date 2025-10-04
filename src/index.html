@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Soundlink - Meet</title>
+
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/x-icon" href="icons/site-icon.png">
+
+  </head>
+  <style>
+    #loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: #000; 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      flex-direction: column;
+
+    }
+
+    .spinner-container {
+      position: relative;
+      width: 200px; 
+      height: 200px; 
+      background: transparent;
+    }
+
+    .spinner {
+      background: transparent;
+      width: 100%;
+      height: 100%;
+      border: 10px solid gray;
+      border-top: 10px solid white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    #loading-logo {
+      position: absolute;
+      background: transparent;
+      top: 53%;
+      left: 110px;
+      width: 200px; 
+      height: 200px;
+      transform: translate(-50%, -50%);
+      border-radius: 50%; 
+      z-index: 10;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg);}
+      100% { transform: rotate(360deg);}
+    }
+
+  </style>
+
+  <body >
+    <div id="loading-overlay">
+
+      <div class="spinner-container">
+        <div class="spinner"></div>
+        <img id="loading-logo" src="icons/logo.png" alt="Logo" />
+      </div>
+    </div>
+
+    <nav class="navbar">
+      <img id="logo-img" src="icons/site-icon.png" width="70px" height="70px" />
+      <h1>SoundLink</h1>
+      <ul>
+        <li class="indicator">Meet</li>
+        <li><a class="tabs" href="social.html">Social</a></li>
+        <li><a class="tabs" href="settings.html">Settings</a></li>
+        <li><a class="logout" href="login.html">Logout</a></li>
+      </ul>
+    </nav>
+
+    <main>
+      <div class="cameras" style="margin-top: 10px">
+        <video
+          id="remoteVideo"
+          width="500"
+          height="273"
+          autoplay
+          playsinline
+        ></video>
+
+        <div class="local-wrapper">
+          <video id="localVideo" autoplay muted playsinline></video>
+        </div>
+      </div>
+
+      <div class="profile">
+        <div class="top-profile">
+          <div class="userpfp">
+            <img id="pfp-image" src="pfp.png" width="65px" height="65px" />
+          </div>
+          <div class="user">
+            <div class="un">
+              <h1 id="username-display">Username</h1>
+              <div class="badges">
+                <img
+                  id="verify-badge"
+                  class="verified"
+                  src="verified.png"
+                  width="20px"
+                  height="20px"
+                />
+                <img
+                  id="premium-badge"
+                  class="premium"
+                  src="premium.png"
+                  width="20px"
+                  height="20px"
+                />
+                <img
+                  id="tester-badge"
+                  class="test"
+                  src="tester.png"
+                  width="20px"
+                  height="20px"
+                />
+              </div>
+
+            </div>
+            <h2 class="friends" id="friend-count">Friends: </h2>
+          </div>
+        </div>
+
+        <div class="banner-wrapper">
+          <img
+            id="banner-image"
+            class="banner"
+            src="defbanner.png"
+            height="170px"
+            width="400px"
+          />
+          <div class="tag">ARTIST</div>
+        </div>
+
+        <div class="platforms">
+          <a id="spotify-link" href="#"
+            ><img src="platforms/spotify.png" width="60px" height="60px"
+          /></a>
+          <a id="youtube-link" href="#"
+            ><img src="platforms/youtube.png" width="60px" height="60px"
+          /></a>
+          <a id="tiktok-link" href="#"
+            ><img src="platforms/tiktok.png" width="60px" height="60px"
+          /></a>
+          <a id="instagram-link" href="#"
+            ><img src="platforms/instagram.png" width="60px" height="60px"
+          /></a>
+        </div>
+        <div class="bio">
+          <p id="profile-description">
+
+          </p>
+        </div>
+        <div class="add-and-more">
+          <div class="add"><button id="addFriendButton">Add Friend</button></div>
+          <div class="more"><h1>•••</h1></div>
+        </div>
+      </div>
+
+      <div class="middle-buttons">
+        <button class="action-btn" id="premiumButton"><img src="icons/premium.png" /></button>
+        <button class="action-btn"  id="reportButton"><img src="icons/report.png" /></button>
+        <button class="action-btn" id="shareScreenButton">
+          <img src="icons/sharescreen.png" />
+        </button>
+
+        <button class="action-btn" id="skipButton">
+          <img src="icons/skip.png" />
+        </button>
+      </div>
+
+      <section class="chat-section">
+        <div class="chat-box"></div>
+        <div class="chat-input">
+          <input type="text" placeholder="Type a message..." />
+          <label class="file-upload-btn" for="audioUpload">🎵</label>
+          <input
+            type="file"
+            id="audioUpload"
+            accept="audio/*"
+            style="display: none"
+          />
+          <label class="file-upload-btn" for="imageUpload">🖼️</label>
+          <input
+            type="file"
+            id="imageUpload"
+            accept="image/*"
+            style="display: none"
+          />
+          <button class="send-btn">➤</button>
+        </div>
+      </section>
+    </main>
+
+   
+    <script src="env-config.js" type="module"></script>
+    <script src="database.js"></script>
+    <script src="auth-manager.js"></script>
+    <script src="script.js" type="module"></script>
+
+  </body>
+</html>
