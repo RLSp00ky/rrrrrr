@@ -60,6 +60,15 @@
       100% { transform: rotate(360deg);}
     }
 
+    @keyframes overlayFadeOut {
+      0% { opacity: 1; pointer-events: auto; }
+      100% { opacity: 0; pointer-events: none; }
+    }
+
+    .fade-out {
+      animation: overlayFadeOut 0.7s ease-out forwards;
+    }
+
   </style>
 
   <body >
