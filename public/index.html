@@ -9,66 +9,59 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="icon" type="image/x-icon" href="icons/site-icon.png">
 
+    <meta property="og:title" content="Soundlink">
+    <meta property="og:description" content="Welcome to Soundlink! Connect with artists, producers, and engineers worldwide."">
+    <meta property="og:url" content="https://5a3c9258-0a9f-4b1a-8b72-261d1a992e11-00-38zwwt69f8qrf.worf.replit.dev/index.html">
+    <meta property="og:image" content="https://i.ibb.co/1YNq4X2m/Screenshot-2025-10-04-164017.png">
+    <meta name="theme-color" content="#ffffff"> 
+    <meta name="twitter:card" content="summary_large_image">
   </head>
   <style>
-    #loading-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: #000; 
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      flex-direction: column;
 
-    }
+  @keyframes logoFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+  }
 
-    .spinner-container {
-      position: relative;
-      width: 200px; 
-      height: 200px; 
-      background: transparent;
-    }
+  @keyframes overlayFadeOut {
+  0% { opacity: 1; pointer-events: auto; } 
+  100% { opacity: 0; pointer-events: none; } 
+  }
 
-    .spinner {
-      background: transparent;
-      width: 100%;
-      height: 100%;
-      border: 10px solid gray;
-      border-top: 10px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
+  #loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #000000; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 1; 
+  overflow: hidden;
+  transition: opacity 0.5s ease-out; 
+  pointer-events: auto; 
+  }
 
-    #loading-logo {
-      position: absolute;
-      background: transparent;
-      top: 53%;
-      left: 110px;
-      width: 200px; 
-      height: 200px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%; 
-      z-index: 10;
-    }
+  #loading-logo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+  opacity: 0; 
+  animation: logoFadeIn 1s ease-in-out forwards; 
+  }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
-    }
-
+  .fade-out {
+  animation: overlayFadeOut 0.7s ease-out forwards; 
+  }
   </style>
 
   <body >
     <div id="loading-overlay">
-
-      <div class="spinner-container">
-        <div class="spinner"></div>
-        <img id="loading-logo" src="icons/logo.png" alt="Logo" />
-      </div>
+    <img id="loading-logo" src="icons/fullscreen.png" alt="Logo" />
     </div>
 
     <nav class="navbar">
@@ -205,7 +198,6 @@
       </section>
     </main>
 
-   
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="env-config.js"></script>
     <script src="database.js"></script>

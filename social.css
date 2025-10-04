@@ -260,51 +260,11 @@ color: var(--navbar-color);
   border-bottom: var(--navbar-color) solid 2px;
 }
 
-#loading-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: #000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  flex-direction: column;
-}
 
-.spinner-container {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  background: transparent;
-}
 
-.spinner {
-  width: 100%;
-  height: 100%;
-  border: 10px solid gray;
-  border-top: 10px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
 
-#loading-logo {
-  position: absolute;
-  top: 53%;
-  left: 110px;
-  width: 200px;
-  height: 200px;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  z-index: 10;
-}
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+  
 
 .main-container {
   display: flex;
@@ -324,11 +284,7 @@ color: var(--navbar-color);
   overflow-y: auto;
 }
 
-.friends-column-css h2{
-  padding-bottom: 20px;
-  text-align: center;
-  border-bottom: solid var(--card-border) 3px;
-}
+
 
 .scrollable-friends {
   display: flex;
@@ -398,7 +354,7 @@ color: var(--navbar-color);
   margin: 0;
   font-size: 20px;
   font-weight: bold;
-  color: white;
+  color: var(--text-color);
 }
 
 #chat-messages {
@@ -470,10 +426,7 @@ color: var(--navbar-color);
   overflow-y: auto;
 }
 
-.friends-column-css h2 {
-  padding-bottom: 20px;
-  text-align: center;
-  border-bottom: solid var(--card-border) 3px;
+
 }
 
 .scrollable-friends {
@@ -525,13 +478,14 @@ color: var(--navbar-color);
 
 #friends-panel {
   scrollbar-width: 8px;
-  scrollbar-color: var(--card-border) var(--bg-color);
+  scrollbar-color:  var(--bg-color);
 }
 
 #chat-messages::-webkit-scrollbar {
   margin-right: 10px;
   margin-top: 5px;
   margin-bottom: 5px;
+  
   width: 20px;
   border-radius: 25px;
 }
@@ -543,11 +497,48 @@ color: var(--navbar-color);
 }
 
 #chat-messages::-webkit-scrollbar-thumb {
-  background-color: var(--card-border);
+  background-color: var(--card-bg);
+  border: 3px solid var(--card-border);
   border-radius: 20px;
   
 }
 
 #chat-messages::-webkit-scrollbar-thumb:hover {
    background-color: var(--highlight);
+}
+
+
+#friend-requests-btn{
+  text-decoration: none;
+  background-color: var(--card-border);
+   color: var(--text-color);
+   border: none;
+   padding: 6px 10px;
+   border-radius: 8px;
+   cursor: pointer;
+   font-weight: bold;
+}
+
+#add-friend-btn{
+  margin-right: 20px;
+  background-color: var(--card-border);
+   color: var(--text-color);
+   border: none;
+   padding: 6px 10px;
+   border-radius: 8px;
+   cursor: pointer;
+   font-weight: bold;
+
+}
+.friends-scroll-top{
+  display: flex; 
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 3px;
+  border-bottom: 3px solid var(--card-border);
+}
+
+.friends-scroll-top h2{
+  align-items: centre;
+  margin-left:20px;
 }

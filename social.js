@@ -124,7 +124,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Hide loading overlay
   const loadingOverlay = document.getElementById("loading-overlay");
-  if (loadingOverlay) loadingOverlay.style.display = "none";
+
+  if (loadingOverlay) {
+
+      loadingOverlay.classList.add('fade-out');
+
+      loadingOverlay.addEventListener('animationend', (e) => {
+
+          if (e.animationName === 'overlayFadeOut') {
+              loadingOverlay.remove(); 
+          }
+      }, { once: true });
+  }
 
   const chatContainer = document.getElementById("chat-container");
   if (chatContainer) chatContainer.style.display = "none";
@@ -238,6 +249,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         usernameH1.style.fontSize = "20px";
         usernameH1.style.margin = "0";
         usernameH1.style.lineHeight = "1";
+        usernameH1.style.backgroundColor = "transparent";
+        usernameH1.style.color = "var(--text-color)";
         usernameH1.textContent = profile.username;
 
         const badgesContainer = document.createElement("span");
@@ -404,6 +417,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const usernameSpan = document.createElement("span");
     usernameSpan.textContent = msg.sender?.username || "Unknown";
     usernameSpan.style.fontSize = "17px";
+    usernameSpan.style.color = "var(--text-color)"
     usernameSpan.style.fontWeight = "bold";
 
     const badgesContainer = document.createElement("span");
@@ -440,6 +454,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (msg.file_url) {
       const isImage = /\.(png|jpe?g|gif|webp|svg)$/i.test(msg.file_url);
       const isAudio = /\.(mp3|wav|ogg|m4a)$/i.test(msg.file_url);
+      const isVideo = /\.(mp4|webm|ogg|mov|mkv)$/i.test(msg.file_url);
 
       if (isImage) {
         const imgEl = document.createElement("img");
@@ -450,6 +465,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         imgEl.style.border = "3px solid var(--card-border)";
         imgEl.style.marginTop = "4px";
         content.appendChild(imgEl);
+
       } else if (isAudio) {
         const audioWrapper = document.createElement("div");
         audioWrapper.style.backgroundColor = "var(--nav-bg)";
@@ -476,6 +492,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         audioWrapper.appendChild(audioEl);
 
         content.appendChild(audioWrapper);
+
+      } else if (isVideo) {
+        const videoWrapper = document.createElement("div");
+        videoWrapper.style.backgroundColor = "var(--nav-bg)";
+        videoWrapper.style.padding = "6px";
+        videoWrapper.style.borderRadius = "30px";
+        videoWrapper.style.border = "3px solid var(--card-border)"
+        videoWrapper.style.display = "inline-block";
+        videoWrapper.style.marginTop = "4px";
+
+        const filenameLabel = document.createElement("div");
+        filenameLabel.textContent = msg.message || "Video";
+        filenameLabel.style.fontSize = "17px";
+        filenameLabel.style.color = "var(--text-color)";
+        filenameLabel.style.marginBottom = "10px";
+        filenameLabel.style.overflow = "hidden";
+        filenameLabel.style.textOverflow = "ellipsis";
+        filenameLabel.style.whiteSpace = "nowrap";
+        videoWrapper.appendChild(filenameLabel);
+
+        const videoEl = document.createElement("video");
+        videoEl.src = msg.file_url;
+        videoEl.controls = true;
+        videoEl.style.maxWidth = "400px";
+        videoEl.style.borderRadius = "8px";
+        videoWrapper.appendChild(videoEl);
+
+        content.appendChild(videoWrapper);
+
       } else {
         const fileLink = document.createElement("a");
         fileLink.href = msg.file_url;
@@ -485,11 +530,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         fileLink.style.textDecoration = "underline";
         content.appendChild(fileLink);
       }
+
     } else if (msg.message) {
       const messageText = document.createElement("div");
       messageText.textContent = msg.message;
       content.appendChild(messageText);
     }
+
 
     div.appendChild(img);
     div.appendChild(content);
