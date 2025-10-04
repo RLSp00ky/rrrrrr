@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       .single();
 
     createMessageBox(`Welcome back, ${profile?.username || data.user.email}!`, 'success');
-    window.location.href = "index.html";
+    window.location.href = "/";
   });
 
   // ----- SIGNUP -----

@@ -6,8 +6,8 @@ require('dotenv').config({ path: '../.env' });
 const { createClient } = require('@supabase/supabase-js');
 
 // Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
 
 // Create Supabase client
 const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {

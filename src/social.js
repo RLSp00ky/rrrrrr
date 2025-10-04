@@ -557,14 +557,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           event: "INSERT",
           schema: "public",
           table: "messages",
-          filter: `receiver_id=eq.${currentUserProfile.id}&sender_id=eq.${friendId}`
+          filter: `receiver_id=eq.${currentUserProfile.id}`
         },
         async payload => {
           const msg = payload.new;
 
           if (msg.sender_id === currentUserProfile.id) {
             msg.sender = {
-              username: currentUserProfile.username, // FIXED: Use profile
+              username: currentUserProfile.username, // Use profile data
               profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
             };
           } else {
@@ -685,7 +685,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const { data: messageData, error: messageError } = await supabaseClient
           .from("messages")
           .insert([{
-            sender_id: currentUser.id,
+            sender_id: currentUserProfile.id,
             receiver_id: currentFriendId,
             message: file.name,
             file_url: fileUrl

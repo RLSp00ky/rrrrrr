@@ -1,4 +1,30 @@
-document.addEventListener("DOMContentLoaded", () => {
+import './settings.css';
+console.log('🔧 Settings.js loading...');
+
+document.addEventListener("DOMContentLoaded", async () => {
+  console.log('🔧 Settings DOMContentLoaded fired');
+
+  // Wait for Supabase client to be initialized by env-config.js
+  let attempts = 0;
+  while (!window.supabaseClient && attempts < 40) { // Wait up to 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 50));
+    attempts++;
+  }
+  
+  if (!window.supabaseClient) {
+    console.error('❌ Supabase client not initialized after waiting');
+    return;
+  }
+
+  console.log('🔧 Supabase client ready, hiding loading overlay');
+  // Hide loading overlay
+  const loadingOverlay = document.getElementById("loading-overlay");
+  if (loadingOverlay) {
+    loadingOverlay.style.display = "none";
+    console.log('🔧 Loading overlay hidden');
+  } else {
+    console.log('🔧 Loading overlay not found');
+  }
 
   const settingsButtons = document.querySelectorAll(
     ".settings-container button",

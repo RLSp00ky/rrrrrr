@@ -50,9 +50,9 @@ async function loadLegacyScripts() {
     await loadLegacyScript('./auth-manager.js')
     
     // Load page-specific scripts based on current page
-    const currentPage = window.location.pathname.split('/').pop() || 'index.html'
+    const currentPage = window.location.pathname.split('/').pop() || 'index'
     
-    if (currentPage === 'index.html' || currentPage === '') {
+    if (currentPage === 'index' || currentPage === '') {
       await loadLegacyScript('./script.js', true)
     } else if (currentPage === 'settings.html') {
       await loadLegacyScript('./settings.js')

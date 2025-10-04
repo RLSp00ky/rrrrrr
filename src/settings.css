@@ -865,7 +865,6 @@ body {
             justify-content: center;       /* center vertically (optional) */
             text-align: center;            /* keep text centered */
         }
-    }
 
     .theme-card h4 {
         margin: 0;
@@ -885,8 +884,6 @@ body {
         height: 45px;
         border: 2px solid #fff;    /* was 3px */
     }
-
-}
 
 .theme-card:hover {
     border-color: #888;
@@ -919,6 +916,32 @@ body {
 .premium-circle {
     background-color: #555;
     border: 3px dashed #aaa;
+}
+
+/* Premium theme circles */
+.red-circle {
+    background-color: #810808;
+    border-color: #ff0000;
+}
+
+.green-circle {
+    background-color: #003300;
+    border-color: #7cde7c;
+}
+
+.pink-circle {
+    background-color: #ffccdc;
+    border-color: #ff66a3;
+}
+
+.purple-circle {
+    background-color: #1a0d2f;
+    border-color: #a020ef;
+}
+
+.blue-circle {
+    background-color: #003366;
+    border-color: #7c9eee;
 }
 
 /* Custom scrollbar for premium scroll */

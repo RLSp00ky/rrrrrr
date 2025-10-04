@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>Soundlink - Settings</title>
-    <link rel="stylesheet" href="settings.css" />
+    <link rel="stylesheet" href="settings.css?v=2" />
     <link id="site-favicon" rel="icon" type="image/png" href="icons/site-icon.png">
   </head>
   <style>
@@ -69,7 +69,7 @@
       <img id="logo-img" src="logo.png" width="70px" height="70px" />
       <h1 id="navbar-username">SoundLink</h1>
       <ul>
-        <li><a class="tabs" href="index.html">Meet</a></li>
+         <li><a class="tabs" href="/">Meet</a></li>
         <li><a class="tabs" href="social.html">Social</a></li>
         <li class="indicator">Settings</li>
         <li><a class="logout" href="login.html">Logout</a></li>
@@ -444,6 +444,19 @@
     <script src="env-config.js" type="module"></script>
     <script src="database.js"></script>
     <script src="auth-manager.js"></script>
+    <script src="settings-db.js"></script>
     <script src="settings.js" type="module"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", async () => {
+        let attempts = 0;
+        while (!window.supabaseClient && attempts < 40) {
+          await new Promise(resolve => setTimeout(resolve, 50));
+          attempts++;
+        }
+        
+        const loadingOverlay = document.getElementById("loading-overlay");
+        if (loadingOverlay) loadingOverlay.style.display = "none";
+      });
+    </script>
   </body>
 </html>

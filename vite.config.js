@@ -12,6 +12,12 @@ export default defineConfig({
   server: {
     port: 5000,
     configureServer(server) {
+      // Handle /index.html the same as /
+      server.middlewares.use('/index.html', (req, res, next) => {
+        req.url = '/';
+        next();
+      });
+      
       // Add backend routes to Vite's middleware
       server.middlewares.use('/env-config', (req, res) => {
         res.json({
