@@ -1,7 +1,5 @@
 import { sendFriendRequest, getFriends, respondToRequest, getDetailedFriendStatus, deleteFriendship } from "./friends.js";
 
-
-
 const cachedTheme = localStorage.getItem("user-theme");
   if (cachedTheme) {
     document.documentElement.setAttribute("data-theme", cachedTheme);
@@ -9,19 +7,17 @@ const cachedTheme = localStorage.getItem("user-theme");
   }
 
 document.addEventListener("DOMContentLoaded", async () => {
-    // Wait for Supabase client to be initialized by env-config.js
+
     let attempts = 0;
-    while (!window.supabaseClient && attempts < 40) { // Wait up to 2 seconds
+    while (!window.supabaseClient && attempts < 40) { 
         await new Promise(resolve => setTimeout(resolve, 50));
         attempts++;
     }
-    
+
     if (!window.supabaseClient) {
         console.error('❌ Supabase client not initialized after waiting');
         return;
     }
-    
-
 
     console.log("🔐 Waiting for authentication...");
     await authManager.waitForAuth();
@@ -84,7 +80,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     function updateThemeAssets() {
         const theme = document.body.getAttribute("data-theme");
 
-        // Update logo based on theme
         const logo = document.getElementById("logo-img");
         if (logo) {
             logo.src = (theme === "dark" || theme === "onyx" || theme === "red" || theme === "blue" || theme === "green" || theme === "purple" || theme === "pink" ) 
@@ -92,7 +87,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 : "icons/logo-light.png"; 
         }
 
-        // Define all buttons and their theme-specific icons
         const buttonMappings = [
             {
                 id: "shareScreenButton",
@@ -150,16 +144,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         ];
 
-        // Loop through buttons and update their images based on the current theme
         buttonMappings.forEach(btn => {
             const el = document.getElementById(btn.id);
             if (el && el.querySelector("img")) {
-                // Use the icon for the current theme, fallback to 'light' if not defined
+
                 el.querySelector("img").src = btn.icons[theme] || btn.icons.light;
             }
         });
     }
-
 
     updateThemeAssets();
 
@@ -213,18 +205,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             const friendStatus = await getDetailedFriendStatus(currentUser.id, peerId, supabaseClient);
-            
+
             addFriendButton.textContent = friendStatus.buttonText;
-            addFriendButton.disabled = (friendStatus.action === 'none'); // Disable buttons with no action (like "Sent")
-            
-            // Store the action and request ID on the button for the click handler
+            addFriendButton.disabled = (friendStatus.action === 'none'); 
+
             addFriendButton.setAttribute('data-action', friendStatus.action);
             if (friendStatus.requestId) {
                 addFriendButton.setAttribute('data-request-id', friendStatus.requestId);
             } else {
                 addFriendButton.removeAttribute('data-request-id');
             }
-            
+
             console.log(`🔄 Friend button updated: ${friendStatus.buttonText} (action: ${friendStatus.action})`);
         } catch (error) {
             console.error("❌ Error updating friend button:", error);
@@ -261,7 +252,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             friendCountElement.textContent = `Friends: ${profile.friendcount}`;
         }
 
-        
         if (verifyBadge) {
             if (profile.verified) {
                 verifyBadge.style.display = "inline-block"; 
@@ -321,16 +311,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             profileContainer.classList.toggle('peer-user', !isCurrentUser);
         }
 
-        // Update friend button for remote users
         if (!isCurrentUser && profile.uuid) {
             updateFriendButton(profile.uuid);
         }
 
         console.log(`✅ Profile display updated for ${isCurrentUser ? 'current user' : 'peer'}`);
     }
-    
 
-    // Load environment configuration for WebRTC settings
     const envConfig = await window.envConfig.getConfig();
     const configuration = {
         iceServers: [
@@ -437,7 +424,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (data.peerProfile) {
                     console.log("✅ Received peer profile data directly from server");
-                    // Ensure uuid exists
+
                     remoteUserProfile = {
                         ...data.peerProfile,
                         uuid: data.peerProfile.id || data.peerProfile.uuid, 
@@ -558,7 +545,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 instagram,
                 themes,
                 friendcount  
-                
+
             `)
             .eq("id", userUUID)
             .single();
@@ -581,7 +568,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
          if (!profile) {
-                // fallback
+
                 remoteUserProfile = { 
                     username: "Unknown User", 
                     profile_picture: "pfp.png", 
@@ -599,7 +586,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             remoteUserProfile = {
                 ...profile,
-                uuid: profile.id  // ⚡ ensure uuid exists
+                uuid: profile.id  
             };
             console.log("✅ Loaded remote user profile:", remoteUserProfile);
 
@@ -643,8 +630,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     await initMedia();
 
     const loadingOverlay = document.getElementById("loading-overlay");
+
     if (loadingOverlay) {
-        loadingOverlay.style.display = "none";
+
+        loadingOverlay.classList.add('fade-out');
+
+        loadingOverlay.addEventListener('animationend', (e) => {
+
+            if (e.animationName === 'overlayFadeOut') {
+                loadingOverlay.remove(); 
+            }
+        }, { once: true });
     }
 
     function setupPeerConnection() {
@@ -1064,7 +1060,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function refreshProfilesFromPeerMessage(peerIdOfAcceptor) {
         const localUserId = authManager.getCurrentUser().id;
 
-        // 1. Refresh CURRENT user's profile (updates THEIR own friend count)
         const { data: currentProfile } = await supabaseClient
             .from("profiles")
             .select("*")
@@ -1072,7 +1067,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             .single();
         if (currentProfile) displayUserProfile(currentProfile, true);
 
-        // 2. Refresh the profile currently visible on their screen (the acceptor's/remover's profile)
         const { data: peerProfile } = await supabaseClient
             .from("profiles")
             .select("*")
@@ -1080,7 +1074,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             .single();
 
         if (peerProfile) {
-            // **CRITICAL FIX: DIRECTLY TARGET THE ID FOR THE FRIEND COUNT**
+
             const friendCountElement = document.getElementById("friend-count");
             if (friendCountElement) {
                 friendCountElement.textContent = `Friends: ${peerProfile.friends}`;
@@ -1089,11 +1083,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             displayUserProfile(peerProfile, false); 
         }
 
-        // 3. Update the button state
         const updatedStatus = await getDetailedFriendStatus(localUserId, peerIdOfAcceptor, supabaseClient);
         applyFriendButtonState(addFriendButton, updatedStatus);
 
-        // Log success after profile and button updates complete
         console.log("Friend Count Updated");
     }
     function setupDataChannelListeners() {
@@ -1102,7 +1094,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.log("💬 Data channel open");
             appendSystemMessage("💬 Chat channel connected");
         };
-        dataChannel.onmessage = async (event) => { // Must be 'async' to use await
+        dataChannel.onmessage = async (event) => { 
             try {
                 const message = JSON.parse(event.data);
 
@@ -1113,21 +1105,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                 if (message.type === "friendshipRemoved") {
                     console.log("👋 Peer removed friendship, updating button state AND friend count");
                     if (currentPeerId) {
-                        // Call the robust function that fetches data and updates the UI
+
                         await refreshProfilesFromPeerMessage(currentPeerId);
                     }
                     return;
                 } else if (message.type === "friendshipAccepted") {
                     console.log("🤝 Peer accepted friendship, updating button state AND friend count");
                     if (currentPeerId) {
-                        // Call the robust function that fetches data and updates the UI
+
                         await refreshProfilesFromPeerMessage(currentPeerId);
                     }
                     return;
                 } else if (message.type === "friendRequestSent") {
                     console.log("📨 Peer sent friend request, updating button state");
                     if (currentPeerId) {
-                        // Assuming updateFriendButton still works for the sender's state
+
                         updateFriendButton(currentPeerId); 
                     }
                     return;
@@ -1211,11 +1203,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     input.addEventListener("keypress", (e) => {
         if (e.key === "Enter") sendMessage();
 
-
     });
     const addFriendButton = document.getElementById("addFriendButton");
 
-    // 🔹 Helper to apply consistent button state
     function applyFriendButtonState(button, state) {
         if (!button || !state) return;
         button.textContent = state.buttonText;
@@ -1227,9 +1217,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // 🔹 Helper to refresh profiles and friend button
     async function refreshProfiles(peerId) {
-        // Refresh current user's profile
+
         const { data: currentProfile } = await supabaseClient
             .from("profiles")
             .select("*")
@@ -1237,7 +1226,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             .single();
         if (currentProfile) displayUserProfile(currentProfile, true);
 
-        // Refresh peer profile
         const { data: peerProfile } = await supabaseClient
             .from("profiles")
             .select("*")
@@ -1245,12 +1233,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             .single();
         if (peerProfile) displayUserProfile(peerProfile, false);
 
-        // Update friend button state
         const updated = await getDetailedFriendStatus(authManager.getCurrentUser().id, peerId, supabaseClient);
         applyFriendButtonState(addFriendButton, updated);
     }
 
-    // 🔹 Handle button clicks
     if (addFriendButton) {
         addFriendButton.addEventListener("click", async () => {
             const peerId = remoteUserProfile?.uuid;
@@ -1278,7 +1264,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 } else if (action === "accept" && requestId) {
                     await respondToRequest(requestId, true, supabaseClient);
 
-                    // Increment friend count for both users
                     await supabaseClient.rpc("increment_friendcount", { user_id: authManager.getCurrentUser().id });
                     await supabaseClient.rpc("increment_friendcount", { user_id: peerId });
 
@@ -1301,7 +1286,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     await deleteFriendship(requestId, supabaseClient);
 
-                    // Decrement friend count for both users
                     await supabaseClient.rpc("decrement_friendcount", { user_id: authManager.getCurrentUser().id });
                     await supabaseClient.rpc("decrement_friendcount", { user_id: peerId });
 
@@ -1325,7 +1309,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // 🔔 Listen for incoming peer updates
     if (dataChannel) {
         dataChannel.addEventListener("message", async (event) => {
             try {
@@ -1338,7 +1321,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         applyFriendButtonState(button, updated);
                     }
 
-                    // Refresh remote user card for current user
                     if (msg.type === "friendshipAccepted" || msg.type === "friendshipRemoved") {
                         const peerIdToRefresh = msg.peerId || msg.fromUserId;
                         const { data: peerProfile } = await supabaseClient
@@ -1357,7 +1339,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // 🔹 Load initial state on profile open
     async function initFriendButton() {
         if (!addFriendButton || !remoteUserProfile?.uuid) return;
 

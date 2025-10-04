@@ -7,17 +7,20 @@ if (cachedTheme) {
 document.addEventListener("DOMContentLoaded", async () => {
   // Wait for Supabase client to be initialized by env-config.js
   let attempts = 0;
-  while (!window.supabaseClient && attempts < 40) { // Wait up to 2 seconds
-    await new Promise(resolve => setTimeout(resolve, 50));
+  while (!window.supabaseClient && attempts < 40) {
+    // Wait up to 2 seconds
+    await new Promise((resolve) => setTimeout(resolve, 50));
     attempts++;
   }
-  
+
   if (!window.supabaseClient) {
-    console.error('❌ Supabase client not initialized after waiting');
+    console.error("❌ Supabase client not initialized after waiting");
     return;
   }
-  
-  console.log("✅ Supabase client ready, proceeding with social initialization");
+
+  console.log(
+    "✅ Supabase client ready, proceeding with social initialization",
+  );
 
   console.log("🔐 Waiting for authentication...");
   await authManager.waitForAuth();
@@ -27,13 +30,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  console.log("✅ User authenticated, applying theme, updating navbar, and fetching friends...");
+  console.log(
+    "✅ User authenticated, applying theme, updating navbar, and fetching friends...",
+  );
 
   await applySavedTheme();
   updateThemeAssets();
 
   const observer = new MutationObserver(updateThemeAssets);
-  observer.observe(document.body, { attributes: true, attributeFilter: ["data-theme"] });
+  observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
 
   // ---------- NAVBAR ----------
   const currentUserProfile = authManager.getCurrentUserProfile();
@@ -100,7 +108,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     userWrapper.appendChild(badgesContainer);
     navbarTitle.appendChild(userWrapper);
-    console.log("👤 Navbar username and badges set:", currentUserProfile.username);
+    console.log(
+      "👤 Navbar username and badges set:",
+      currentUserProfile.username,
+    );
   }
 
   // ---------- FRIENDS PANEL ----------
@@ -113,7 +124,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Hide loading overlay
   const loadingOverlay = document.getElementById("loading-overlay");
-  if (loadingOverlay) loadingOverlay.style.display = "none";
+
+  if (loadingOverlay) {
+
+      loadingOverlay.classList.add('fade-out');
+
+      loadingOverlay.addEventListener('animationend', (e) => {
+
+          if (e.animationName === 'overlayFadeOut') {
+              loadingOverlay.remove(); 
+          }
+      }, { once: true });
+  }
 
   const chatContainer = document.getElementById("chat-container");
   if (chatContainer) chatContainer.style.display = "none";
@@ -150,7 +172,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const theme = document.body.getAttribute("data-theme");
     const logo = document.getElementById("logo-img");
     if (logo) {
-      logo.src = (["dark", "onyx", "red", "blue", "green", "purple", "pink"].includes(theme))
+      logo.src = [
+        "dark",
+        "onyx",
+        "red",
+        "blue",
+        "green",
+        "purple",
+        "pink",
+      ].includes(theme)
         ? "icons/logo.png"
         : "icons/logo-light.png";
     }
@@ -166,12 +196,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       const { data: friendsData, error } = await supabaseClient
         .from("friends")
         .select("requester_id, receiver_id")
-        .or(`requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`)
+        .or(
+          `requester_id.eq.${currentUser.id},receiver_id.eq.${currentUser.id}`,
+        )
         .eq("status", "accepted");
 
       if (error) throw error;
 
-      const friendIds = friendsData.map(f => f.requester_id === currentUser.id ? f.receiver_id : f.requester_id);
+      const friendIds = friendsData.map((f) =>
+        f.requester_id === currentUser.id ? f.receiver_id : f.requester_id,
+      );
       if (friendIds.length === 0) {
         friendsContainer.innerHTML = "<p>No friends yet</p>";
         return;
@@ -186,7 +220,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       friendsContainer.innerHTML = "";
 
-      profiles.forEach(profile => {
+      profiles.forEach((profile) => {
         const div = document.createElement("div");
         div.className = "friend-item";
         div.style.display = "flex";
@@ -215,61 +249,30 @@ document.addEventListener("DOMContentLoaded", async () => {
         usernameH1.style.fontSize = "20px";
         usernameH1.style.margin = "0";
         usernameH1.style.lineHeight = "1";
+        usernameH1.style.backgroundColor = "transparent";
+        usernameH1.style.color = "var(--text-color)";
         usernameH1.textContent = profile.username;
-
-        usernameWrapper.appendChild(usernameH1);
 
         const badgesContainer = document.createElement("span");
         badgesContainer.style.display = "flex";
         badgesContainer.style.alignItems = "center";
-        badgesContainer.style.marginLeft = "6px";
+        badgesContainer.style.marginLeft = "15px";
 
-        if (profile.verified) {
-          const verifiedBadge = document.createElement("img");
-          verifiedBadge.src = "verified.png";
-          verifiedBadge.alt = "Verified";
-          verifiedBadge.style.width = "16px";
-          verifiedBadge.style.height = "16px";
-          verifiedBadge.style.borderRadius = "50%";
-          verifiedBadge.style.border = "solid 2px var(--text-color)";
-          verifiedBadge.style.backgroundColor = "white";
-          verifiedBadge.style.marginLeft = "4px";
-          badgesContainer.appendChild(verifiedBadge);
-        }
+        if (profile.verified)
+          badgesContainer.appendChild(createBadge("verified.png"));
+        if (profile.premium)
+          badgesContainer.appendChild(createBadge("premium.png"));
+        if (profile.tester)
+          badgesContainer.appendChild(createBadge("tester.png"));
 
-        if (profile.premium) {
-          const premiumBadge = document.createElement("img");
-          premiumBadge.src = "premium.png";
-          premiumBadge.alt = "Premium";
-          premiumBadge.style.width = "16px";
-          premiumBadge.style.height = "16px";
-          premiumBadge.style.borderRadius = "50%";
-          premiumBadge.style.border = "solid 2px var(--text-color)";
-          premiumBadge.style.backgroundColor = "white";
-          premiumBadge.style.marginLeft = "4px";
-          badgesContainer.appendChild(premiumBadge);
-        }
-
-        if (profile.tester) {
-          const testerBadge = document.createElement("img");
-          testerBadge.src = "tester.png";
-          testerBadge.alt = "Tester";
-          testerBadge.style.width = "16px";
-          testerBadge.style.height = "16px";
-          testerBadge.style.borderRadius = "50%";
-          testerBadge.style.border = "solid 2px var(--text-color)";
-          testerBadge.style.backgroundColor = "white";
-          testerBadge.style.marginLeft = "4px";
-          badgesContainer.appendChild(testerBadge);
-        }
-
+        usernameWrapper.appendChild(usernameH1);
         usernameWrapper.appendChild(badgesContainer);
         div.appendChild(img);
         div.appendChild(usernameWrapper);
         friendsContainer.appendChild(div);
 
         div.addEventListener("click", async () => {
-          document.querySelectorAll(".friend-item").forEach(item => {
+          document.querySelectorAll(".friend-item").forEach((item) => {
             item.classList.remove("selected");
             item.style.backgroundColor = "";
           });
@@ -279,18 +282,49 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (chatContainer) chatContainer.style.display = "flex";
 
           const chatHeaderImg = document.getElementById("chat-header-img");
-          const chatHeaderUsername = document.getElementById("chat-header-username");
-          if (chatHeaderImg) chatHeaderImg.src = profile.profile_picture || "icons/default-avatar.png";
-          if (chatHeaderUsername) chatHeaderUsername.textContent = profile.username;
+          const chatHeaderUsername = document.getElementById(
+            "chat-header-username",
+          );
+          const chatHeaderBadges =
+            document.getElementById("chat-header-badges");
+
+          if (chatHeaderImg)
+            chatHeaderImg.src =
+              profile.profile_picture || "icons/default-avatar.png";
+          if (chatHeaderUsername)
+            chatHeaderUsername.textContent = profile.username;
+
+          // Update chat header badges
+          if (chatHeaderBadges) {
+            chatHeaderBadges.innerHTML = "";
+            if (profile.verified)
+              chatHeaderBadges.appendChild(createBadge("verified.png"));
+            if (profile.premium)
+              chatHeaderBadges.appendChild(createBadge("premium.png"));
+            if (profile.tester)
+              chatHeaderBadges.appendChild(createBadge("tester.png"));
+          }
 
           await loadChat(profile.id);
         });
       });
-
     } catch (err) {
       console.error("Error fetching friends:", err);
       friendsContainer.innerHTML = "<p>Error loading friends</p>";
     }
+  }
+
+  function createBadge(src) {
+    const img = document.createElement("img");
+    img.src = src;
+    img.alt = "Badge";
+    img.style.width = "18px";
+    img.style.height = "18px";
+    img.style.borderRadius = "50%";
+    img.style.border = "solid 2px var(--text-color)";
+    img.style.backgroundColor = "white";
+    img.style.marginLeft = "5px";
+    return img;
   }
 
   // ---------- CHAT ----------
@@ -299,16 +333,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   const chatSendBtn = document.getElementById("chat-send-btn");
   const fileInputEl = document.getElementById("file-upload");
   const uploadBtnEl = document.getElementById("upload-btn");
-  const scrollBtn = document.getElementById("scroll-to-bottom"); // <-- scroll button
+  const scrollBtn = document.getElementById("scroll-to-bottom");
+
   let currentFriendId = null;
   let chatChannel = null;
   let lastDateRef = { value: null };
 
-  // Helper: check same day
   function isSameDay(a, b) {
-    return a.getFullYear() === b.getFullYear() &&
+    return (
+      a.getFullYear() === b.getFullYear() &&
       a.getMonth() === b.getMonth() &&
-      a.getDate() === b.getDate();
+      a.getDate() === b.getDate()
+    );
   }
 
   function formatDateLabel(date) {
@@ -318,7 +354,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (isSameDay(date, today)) return "Today";
     if (isSameDay(date, yesterday)) return "Yesterday";
-    return date.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    return date.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
   }
 
   function appendMessage(msg, lastDateRefParam) {
@@ -326,7 +366,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const msgDate = msg.created_at ? new Date(msg.created_at) : new Date();
     const dateLabel = formatDateLabel(msgDate);
-
     const lastRef = lastDateRefParam || lastDateRef;
 
     if (lastRef.value !== dateLabel) {
@@ -342,6 +381,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     const div = document.createElement("div");
+    div.style.paddingTop = "4px";
+    div.style.paddingLeft = "4px";
+    div.style.borderRadius = "15px";
+    div.style.border = "solid 3px var(--card-border)";
     div.style.display = "flex";
     div.style.alignItems = "flex-start";
     div.style.marginBottom = "10px";
@@ -368,17 +411,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const headerRow = document.createElement("div");
     headerRow.style.display = "flex";
-    headerRow.style.justifyContent = "space-between";
     headerRow.style.alignItems = "center";
     headerRow.style.marginBottom = "4px";
 
     const usernameSpan = document.createElement("span");
     usernameSpan.textContent = msg.sender?.username || "Unknown";
     usernameSpan.style.fontSize = "17px";
+    usernameSpan.style.color = "var(--text-color)"
     usernameSpan.style.fontWeight = "bold";
 
+    const badgesContainer = document.createElement("span");
+    badgesContainer.style.display = "flex";
+    badgesContainer.style.alignItems = "center";
+    badgesContainer.style.marginLeft = "6px";
+
+    if (msg.sender?.verified)
+      badgesContainer.appendChild(createBadge("verified.png"));
+    if (msg.sender?.premium)
+      badgesContainer.appendChild(createBadge("premium.png"));
+    if (msg.sender?.tester)
+      badgesContainer.appendChild(createBadge("tester.png"));
+
+    headerRow.appendChild(usernameSpan);
+    headerRow.appendChild(badgesContainer);
+
     const timeSpan = document.createElement("span");
-    timeSpan.textContent = msgDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    timeSpan.textContent = msgDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
     timeSpan.style.fontSize = "11px";
     timeSpan.style.color = "var(--text-color)";
     timeSpan.style.fontWeight = "bold";
@@ -386,14 +447,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     timeSpan.style.padding = "2px 6px";
     timeSpan.style.borderRadius = "10px";
     timeSpan.style.marginLeft = "10px";
-
-    headerRow.appendChild(usernameSpan);
     headerRow.appendChild(timeSpan);
+
     content.appendChild(headerRow);
 
     if (msg.file_url) {
       const isImage = /\.(png|jpe?g|gif|webp|svg)$/i.test(msg.file_url);
       const isAudio = /\.(mp3|wav|ogg|m4a)$/i.test(msg.file_url);
+      const isVideo = /\.(mp4|webm|ogg|mov|mkv)$/i.test(msg.file_url);
 
       if (isImage) {
         const imgEl = document.createElement("img");
@@ -401,8 +462,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         imgEl.alt = "Image";
         imgEl.style.maxWidth = "200px";
         imgEl.style.borderRadius = "12px";
+        imgEl.style.border = "3px solid var(--card-border)";
         imgEl.style.marginTop = "4px";
         content.appendChild(imgEl);
+
       } else if (isAudio) {
         const audioWrapper = document.createElement("div");
         audioWrapper.style.backgroundColor = "var(--nav-bg)";
@@ -429,6 +492,35 @@ document.addEventListener("DOMContentLoaded", async () => {
         audioWrapper.appendChild(audioEl);
 
         content.appendChild(audioWrapper);
+
+      } else if (isVideo) {
+        const videoWrapper = document.createElement("div");
+        videoWrapper.style.backgroundColor = "var(--nav-bg)";
+        videoWrapper.style.padding = "6px";
+        videoWrapper.style.borderRadius = "30px";
+        videoWrapper.style.border = "3px solid var(--card-border)"
+        videoWrapper.style.display = "inline-block";
+        videoWrapper.style.marginTop = "4px";
+
+        const filenameLabel = document.createElement("div");
+        filenameLabel.textContent = msg.message || "Video";
+        filenameLabel.style.fontSize = "17px";
+        filenameLabel.style.color = "var(--text-color)";
+        filenameLabel.style.marginBottom = "10px";
+        filenameLabel.style.overflow = "hidden";
+        filenameLabel.style.textOverflow = "ellipsis";
+        filenameLabel.style.whiteSpace = "nowrap";
+        videoWrapper.appendChild(filenameLabel);
+
+        const videoEl = document.createElement("video");
+        videoEl.src = msg.file_url;
+        videoEl.controls = true;
+        videoEl.style.maxWidth = "400px";
+        videoEl.style.borderRadius = "8px";
+        videoWrapper.appendChild(videoEl);
+
+        content.appendChild(videoWrapper);
+
       } else {
         const fileLink = document.createElement("a");
         fileLink.href = msg.file_url;
@@ -438,129 +530,110 @@ document.addEventListener("DOMContentLoaded", async () => {
         fileLink.style.textDecoration = "underline";
         content.appendChild(fileLink);
       }
+
     } else if (msg.message) {
       const messageText = document.createElement("div");
       messageText.textContent = msg.message;
       content.appendChild(messageText);
     }
 
+
     div.appendChild(img);
     div.appendChild(content);
+
+    const isAtBottom =
+      chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <=
+      chatMessagesEl.clientHeight + 50;
     chatMessagesEl.appendChild(div);
 
-    // Auto-scroll if user is near bottom
-    if (chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <= chatMessagesEl.clientHeight + 50) {
-      chatMessagesEl.scrollTo({ top: chatMessagesEl.scrollHeight, behavior: "smooth" });
-    }
+    if (isAtBottom)
+      chatMessagesEl.scrollTo({
+        top: chatMessagesEl.scrollHeight,
+        behavior: "smooth",
+      });
   }
 
   // ---------- SCROLL-TO-BOTTOM BUTTON ----------
   if (chatMessagesEl && scrollBtn) {
-    // Show/hide button based on scroll
     chatMessagesEl.addEventListener("scroll", () => {
-      const isAtBottom = chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <= chatMessagesEl.clientHeight + 50;
+      const isAtBottom =
+        chatMessagesEl.scrollHeight - chatMessagesEl.scrollTop <=
+        chatMessagesEl.clientHeight + 50;
       scrollBtn.style.display = isAtBottom ? "none" : "block";
     });
 
-    // Animated scroll function
-    function animateScrollToBottom(duration = 500) {
-      const start = chatMessagesEl.scrollTop;
-      const end = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight;
-      const distance = end - start;
-      const startTime = performance.now();
-
-      function easeInOutQuad(t) {
-        return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // smooth easing
-      }
-
-      function animate(time) {
-        const elapsed = time - startTime;
-        const progress = Math.min(elapsed / duration, 1);
-        chatMessagesEl.scrollTop = start + distance * easeInOutQuad(progress);
-
-        if (progress < 1) requestAnimationFrame(animate);
-      }
-
-      requestAnimationFrame(animate);
-    }
-
-    scrollBtn.addEventListener("click", () => animateScrollToBottom(500));
+    scrollBtn.addEventListener("click", () => {
+      chatMessagesEl.scrollTo({
+        top: chatMessagesEl.scrollHeight,
+        behavior: "smooth",
+      });
+    });
   }
 
   // ---------- LOAD CHAT ----------
-  // Helper: smooth scroll to bottom
-  function animateScrollToBottom(duration = 300) {
-    if (!chatMessagesEl) return;
-    const start = chatMessagesEl.scrollTop;
-    const end = chatMessagesEl.scrollHeight - chatMessagesEl.clientHeight;
-    const change = end - start;
-    const startTime = performance.now();
-
-    function animate(time) {
-      const elapsed = time - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      chatMessagesEl.scrollTop = start + change * progress;
-      if (progress < 1) requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
-  }
-
   async function loadChat(friendId) {
     currentFriendId = friendId;
-    const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+    const currentUserProfile = authManager.getCurrentUserProfile();
     if (!currentUserProfile) return console.error("No current user profile");
 
     const { data: messages, error } = await supabaseClient
       .from("messages")
       .select("*")
       .or(
-        `and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`
+        `and(sender_id.eq.${currentUserProfile.id},receiver_id.eq.${friendId}),and(sender_id.eq.${friendId},receiver_id.eq.${currentUserProfile.id}))`,
       )
       .order("created_at", { ascending: true });
 
     if (error) return console.error("Error loading messages:", error);
 
-    const senderIds = [...new Set(messages.map(m => m.sender_id))];
+    const senderIds = [...new Set(messages.map((m) => m.sender_id))];
     const { data: profiles } = await supabaseClient
       .from("profiles")
-      .select("id, username, profile_picture")
+      .select("id, username, profile_picture, verified, premium, tester")
       .in("id", senderIds);
 
-    const messagesWithProfiles = messages.map(msg => ({
+    const messagesWithProfiles = messages.map((msg) => ({
       ...msg,
-      sender: profiles.find(p => p.id === msg.sender_id) || {
+      sender: profiles.find((p) => p.id === msg.sender_id) || {
         username: "Unknown",
-        profile_picture: "icons/default-avatar.png"
-      }
+        profile_picture: "icons/default-avatar.png",
+        verified: false,
+        premium: false,
+        tester: false,
+      },
     }));
 
     if (chatMessagesEl) chatMessagesEl.innerHTML = "";
     lastDateRef.value = null;
 
-    messagesWithProfiles.forEach(msg => appendMessage(msg, lastDateRef));
+    messagesWithProfiles.forEach((msg) => appendMessage(msg, lastDateRef));
 
-    // Scroll to bottom smoothly after messages are appended
-    if (chatMessagesEl) animateScrollToBottom(400);
-
-    if (chatChannel) {
-      try { chatChannel.unsubscribe(); } catch (e) {}
+    if (chatMessagesEl) {
+      chatMessagesEl.scrollTo({
+        top: chatMessagesEl.scrollHeight,
+        behavior: "auto",
+      });
     }
 
+    if (chatChannel) chatChannel.unsubscribe();
+
     const channelName = `chat-${[currentUserProfile.id, friendId].sort().join("-")}`;
-    console.log('Setting up real-time subscription for channel:', channelName);
-    
-    chatChannel = supabaseClient.channel(channelName)
+
+    chatChannel = supabaseClient
+      .channel(channelName)
       .on(
         "postgres_changes",
+
         {
           event: "INSERT",
           schema: "public",
           table: "messages",
           filter: `receiver_id=eq.${currentUserProfile.id}`
+
         },
-        async payload => {
+        async (payload) => {
           const msg = payload.new;
+          if (msg.sender_id === currentUserProfile.id) return;
 
           if (msg.sender_id === currentUserProfile.id) {
             msg.sender = {
@@ -570,49 +643,38 @@ document.addEventListener("DOMContentLoaded", async () => {
           } else {
             const { data: profile } = await supabaseClient
               .from("profiles")
-              .select("username, profile_picture")
+              .select("username, profile_picture, verified, premium, tester")
               .eq("id", msg.sender_id)
               .single();
-            msg.sender = profile || { username: "Unknown", profile_picture: "icons/default-avatar.png" };
+
+            msg.sender = profile || {
+              username: "Unknown",
+              profile_picture: "icons/default-avatar.png",
+              verified: false,
+              premium: false,
+              tester: false,
+            };
           }
 
-          console.log('Real-time message received:', msg);
-          
-          // Re-query DOM elements to ensure fresh references
-          const chatMessagesEl = document.getElementById("chat-messages");
-          const chatContainer = document.getElementById("chat-container");
-          
-          // Ensure the chat container is visible before appending message
-          if (chatContainer && chatContainer.style.display === "none") {
-            chatContainer.style.display = "flex";
-          }
+          appendMessage(msg, lastDateRef);
 
-          // Append the message to the UI if we have a valid element
-          if (chatMessagesEl) {
-            console.log('🔥 About to append message to UI...');
-            appendMessage(msg, lastDateRef);
-            animateScrollToBottom(200); // scroll down when new message arrives
-            console.log('🔥 Real-time message added to UI successfully!');
-          } else {
-            console.error("Chat messages element not found when trying to append real-time message");
+          // ---------- NOTIFICATION SOUND ----------
+          const isChatHidden =
+            !chatContainer || chatContainer.style.display === "none";
+          const isTabHidden = document.hidden;
+
+          if (isChatHidden || isTabHidden) {
+            const audio = new Audio("sounds/notification.wav");
+            audio
+              .play()
+              .catch((err) =>
+                console.error("Error playing notification sound:", err),
+              );
           }
-        }
+        },
       )
-      .subscribe((status, err) => {
-        console.log('🔔 SUBSCRIPTION STATUS:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Real-time chat subscription established');
-          console.log('🔔 Now listening for messages on channel:', channelName);
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Real-time chat subscription error:', err);
-        } else if (status === 'TIMED_OUT') {
-          console.error('❌ Real-time chat subscription timed out');
-        } else if (status === 'CLOSED') {
-          console.log('❌ Real-time chat subscription closed');
-        }
-      });
+      .subscribe();
   }
-
 
   // ---------- SEND MESSAGE ----------
   if (chatSendBtn) {
@@ -621,22 +683,25 @@ document.addEventListener("DOMContentLoaded", async () => {
       const message = chatInputEl.value.trim();
       if (!message || !currentFriendId) return;
 
-      const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+      const currentUserProfile = authManager.getCurrentUserProfile();
       if (!currentUserProfile) return console.error("No current user profile");
 
       try {
         const { data: messageData, error } = await supabaseClient
           .from("messages")
-          .insert([{ sender_id: currentUserProfile.id, receiver_id: currentFriendId, message }])
+          .insert([
+            {
+              sender_id: currentUserProfile.id,
+              receiver_id: currentFriendId,
+              message,
+            },
+          ])
           .select();
 
         if (error) return console.error("Error sending message:", error);
 
-        if (messageData && messageData.length > 0) {
-          messageData[0].sender = {
-            username: currentUserProfile.username, // FIXED: Use profile
-            profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
-          };
+        if (messageData?.length > 0) {
+          messageData[0].sender = currentUserProfile;
           appendMessage(messageData[0], lastDateRef);
           chatInputEl.value = "";
         }
@@ -647,39 +712,36 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   if (chatInputEl) {
-    chatInputEl.addEventListener("keypress", e => {
+    chatInputEl.addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
         e.preventDefault();
-        if (chatSendBtn) chatSendBtn.click();
+        chatSendBtn?.click();
       }
     });
   }
 
   // ---------- FILE UPLOAD ----------
-  if (uploadBtnEl && fileInputEl) uploadBtnEl.addEventListener("click", () => fileInputEl.click());
+  if (uploadBtnEl && fileInputEl)
+    uploadBtnEl.addEventListener("click", () => fileInputEl.click());
 
   if (fileInputEl) {
     fileInputEl.addEventListener("change", async (event) => {
       const file = event.target.files[0];
       if (!file || !currentFriendId) return;
 
-      const currentUserProfile = authManager.getCurrentUserProfile(); // FIXED: Use profile
+      const currentUserProfile = authManager.getCurrentUserProfile();
       if (!currentUserProfile) return console.error("No current user profile");
 
       try {
         const filePath = `${currentUserProfile.id}/${Date.now()}_${file.name}`;
-        const { data: uploadData, error: uploadError } = await supabaseClient
-          .storage
+        const { error: uploadError } = await supabaseClient.storage
           .from("chat-files")
           .upload(filePath, file);
-
         if (uploadError) throw uploadError;
 
-        const { data: publicUrlData } = supabaseClient
-          .storage
+        const { data: publicUrlData } = supabaseClient.storage
           .from("chat-files")
           .getPublicUrl(filePath);
-
         const fileUrl = publicUrlData.publicUrl;
 
         const { data: messageData, error: messageError } = await supabaseClient
@@ -690,15 +752,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             message: file.name,
             file_url: fileUrl
           }])
+
           .select();
 
         if (messageError) throw messageError;
 
-        if (messageData && messageData.length > 0) {
-          messageData[0].sender = {
-            username: currentUserProfile.username, // FIXED: Use profile
-            profile_picture: currentUserProfile.profile_picture || "icons/default-avatar.png"
-          };
+        if (messageData?.length > 0) {
+          messageData[0].sender = currentUserProfile;
           appendMessage(messageData[0], lastDateRef);
         }
 

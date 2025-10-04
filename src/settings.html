@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
   <head>
@@ -7,439 +8,431 @@
     <title>Soundlink - Settings</title>
     <link rel="stylesheet" href="settings.css?v=2" />
     <link id="site-favicon" rel="icon" type="image/png" href="icons/site-icon.png">
+    <meta property="og:title" content="Soundlink - Settings">
+    <meta property="og:description" content="Welcome to Soundlink! Connect with artists, producers, and engineers worldwide.">
+    <meta property="og:url" content="https://5a3c9258-0a9f-4b1a-8b72-261d1a992e11-00-38zwwt69f8qrf.worf.replit.dev/settings.html">
+    <meta property="og:image" content="https://i.ibb.co/yFJX477P/settings.png">
+    <meta name="theme-color" content="#ffffff"> 
+    <meta name="twitter:card" content="summary_large_image">
   </head>
   <style>
+    @keyframes logoFadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes overlayFadeOut {
+      0% { opacity: 1; pointer-events: auto; } 
+      100% { opacity: 0; pointer-events: none; } 
+    }
+
     #loading-overlay {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: #000; 
+      background: #000000; 
       display: flex;
       align-items: center;
       justify-content: center;
       z-index: 9999;
-
-    }
-
-    .spinner-container {
-      position: relative;
-      width: 200px; 
-      height: 200px; 
-      background: transparent;
-    }
-
-    .spinner {
-      background: transparent;
-      width: 100%;
-      height: 100%;
-      border: 10px solid gray;
-      border-top: 10px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      opacity: 1; 
+      overflow: hidden;
+      transition: opacity 0.5s ease-out; 
+      pointer-events: auto; 
     }
 
     #loading-logo {
-      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
       background: transparent;
-      top: 53%;
-      left: 110px;
-      width: 200px; 
-      height: 200px;
-      transform: translate(-50%, -50%);
-      border-radius: 50%; 
-      z-index: 10;
+      opacity: 0; 
+      animation: logoFadeIn 1s ease-in-out forwards; 
     }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg);}
-      100% { transform: rotate(360deg);}
+    .fade-out {
+      animation: overlayFadeOut 0.7s ease-out forwards; 
     }
-
   </style>
-  <body style="overflow-x: hidden;">
-    <div id="loading-overlay">
-      <div class="spinner-container">
-        <div class="spinner"></div>
-        <img id="loading-logo" src="icons/logo.png" alt="Logo" />
-      </div>
-    </div>
-    <nav class="navbar">
-      <img id="logo-img" src="logo.png" width="70px" height="70px" />
-      <h1 id="navbar-username">SoundLink</h1>
-      <ul>
-         <li><a class="tabs" href="/">Meet</a></li>
-        <li><a class="tabs" href="social.html">Social</a></li>
-        <li class="indicator">Settings</li>
-        <li><a class="logout" href="login.html">Logout</a></li>
-      </ul>
-    </nav>
-    <main>
-      <div class="settings-container">
-        <ul>
+          <body style="overflow-x: hidden;">
+              <div id="loading-overlay">
+          <img id="loading-logo" src="icons/fullscreen/settings.png" alt="Logo" />
+          </div>
+              <nav class="navbar">
+          <img id="logo-img" src="logo.png" width="70px" height="70px" />
+          <h1 id="navbar-username">SoundLink</h1>
+          <ul>
+          <li><a class="tabs" href="index.html">Meet</a></li>
+          <li><a class="tabs" href="social.html">Social</a></li>
+          <li class="indicator">Settings</li>
+          <li><a class="logout" href="login.html">Logout</a></li>
+          </ul>
+          </nav>
+          <main>
+          <div class="settings-container">
+          <ul>
+
           <li>
-            <button type="button" data-target-id="account-content">
-              Account
-            </button>
+          <button type="button" data-target-id="account-content">
+          Account
+          </button>
           </li>
           <li>
-            <button type="button" data-target-id="profile-content" class="profile-button">
-              Profile
-            </button>
+          <button type="button" data-target-id="profile-content" class="profile-button">
+          Profile
+          </button>
           </li>
           <li>
-            <button type="button" data-target-id="theme-content">Theme</button>
+          <button type="button" data-target-id="theme-content">Theme</button>
           </li>
           <li>
-            <button type="button" data-target-id="video-content">Video</button>
+          <button type="button" data-target-id="video-content">Video</button>
           </li>
           <li>
-            <button type="button" data-target-id="premium-content">
-              Premium
-            </button>
+          <button type="button" data-target-id="premium-content">
+          Premium
+          </button>
           </li>
           <li>
-            <button type="button" data-target-id="blocked-content">
-              Blocked
-            </button>
+          <button type="button" data-target-id="blocked-content">
+          Blocked
+          </button>
           </li>
           <li>
-            <button type="button" data-target-id="privacy-content">
-              Privacy
-            </button>
+          <button type="button" data-target-id="privacy-content">
+          Privacy
+          </button>
           </li>
           <li>
-            <button type="button" data-target-id="updates-content">
-              Updates
-            </button>
+          <button type="button" data-target-id="updates-content">
+          Updates
+          </button>
           </li>
-        </ul>
-      </div>
-      <div class="content-wrapper">
-        <div id="account-content" class="settings-page active">
+          </ul>
+          </div>
+          <div class="content-wrapper">
+          <div id="account-content" class="settings-page active">
           <h2>Account Settings</h2>
           <p>
-            Here you can manage your account information, such as your username
-            and email.
+          Here you can manage your account information, such as your username
+          and email.
           </p>
           <form id="account-form">
-            <label for="username" max_length="20">Username:</label><br />
-            <input type="text" id="username" name="username" /><br /><br />
-            <label for="email">Email:</label><br />
-            <input type="email" id="email" name="email" /><br /><br />
-            <button type="submit">Save Changes</button>
+          <label for="username" max_length="20">Username:</label><br />
+          <input type="text" id="username" name="username" /><br /><br />
+          <label for="email">Email:</label><br />
+          <input type="email" id="email" name="email" /><br /><br />
+          <button type="submit">Save Changes</button>
           </form>
-        </div>
+          </div>
 
-        <div id="profile-content" class="settings-page">
+          <div id="profile-content" class="settings-page">
           <form id="profile-form">
-            <div class="profile-grid">
-              <div class="profile-left">
-                <div class="input-group">
-                  <input
-                    type="text"
-                    id="username-edit"
-                    placeholder="Username edit field"
-                  />
-                </div>
-                <div class="input-group">
-                  <select id="tag-dropdown">
-                    <option value="Artist">Artist</option>
-                    <option value="Engineer">Engineer</option>
-                    <option value="Producer">Producer</option>
-                  </select>
-                  <span class="dropdown-arrow"></span>
-                </div>
-                <textarea
-                  id="bio-edit"
-                  placeholder="Bio edit field"
-                  rows="3"
-                ></textarea>
+          <div class="profile-grid">
+          <div class="profile-left">
+          <div class="input-group">
+          <input
+          type="text"
+          id="username-edit"
+          placeholder="Username edit field"
+          />
+          </div>
+          <div class="input-group">
+          <select id="tag-dropdown">
+          <option value="Artist">Artist</option>
+          <option value="Engineer">Engineer</option>
+          <option value="Producer">Producer</option>
+          </select>
+          <span class="dropdown-arrow"></span>
+          </div>
+          <textarea
+          id="bio-edit"
+          placeholder="Bio edit field"
+          rows="3"
+          ></textarea>
 
-                <div class="profile-image-upload">
-                  <div class="image-placeholder">
-                    <img
-                      id="pfp-preview"
-                      src="pfp.png"
-                      alt="Profile Picture"
-                      class="profile-preview"
-                    />
-                    <label for="pfp-upload">
-                      <img src="edit.png" alt="Edit Icon" class="edit-icon" />
-                    </label>
-                    <input
-                      type="file"
-                      id="pfp-upload"
-                      accept="image/*"
-                      style="display: none"
-                    />
-                  </div>
+          <div class="profile-image-upload">
+          <div class="image-placeholder">
+          <img
+          id="pfp-preview"
+          src="pfp.png"
+          alt="Profile Picture"
+          class="profile-preview"
+          />
+          <label for="pfp-upload">
+          <img src="edit.png" alt="Edit Icon" class="edit-icon" />
+          </label>
+          <input
+          type="file"
+          id="pfp-upload"
+          accept="image/*"
+          style="display: none"
+          />
+          </div>
 
-                  <div class="cover-image-placeholder">
-                    <img
-                      id="banner-preview"
-                      src="defbanner.png"
-                      alt="Banner Image"
-                      class="banner-preview"
-                    />
-                    <label for="banner-upload">
-                      <img src="edit.png" alt="Edit Icon" class="edit-icon" />
-                    </label>
-                    <input
-                      type="file"
-                      id="banner-upload"
-                      accept="image/*"
-                      style="display: none"
-                    />
-                  </div>
-                </div>
+          <div class="cover-image-placeholder">
+          <img
+          id="banner-preview"
+          src="defbanner.png"
+          alt="Banner Image"
+          class="banner-preview"
+          />
+          <label for="banner-upload">
+          <img src="edit.png" alt="Edit Icon" class="edit-icon" />
+          </label>
+          <input
+          type="file"
+          id="banner-upload"
+          accept="image/*"
+          style="display: none"
+          />
+          </div>
+          </div>
 
-                <button class="upgrade-button" type="button">Upgrade</button>
-                <button
-                  id="save-profile-button"
-                  type="submit"
-                  class="save-changes-button"
-                >
-                  Save changes
-                </button>
-              </div>
+          <button class="upgrade-button" type="button">Upgrade</button>
+          <button
+          id="save-profile-button"
+          type="submit"
+          class="save-changes-button"
+          >
+          Save changes
+          </button>
+          </div>
 
-              <div class="profile-middle">
-                <h3>SOCIALS</h3>
+          <div class="profile-middle">
+          <h3>SOCIALS</h3>
 
-                <div class="social-input-group">
-                  <img src="platforms/tiktok.png" alt="TikTok" />
-                  <div class="input-with-prefix">
-                    <span>https:
-                    <input id="tiktok-edit" placeholder="username" />
-                  </div>
-                </div>
+          <div class="social-input-group">
+          <img src="platforms/tiktok.png" alt="TikTok" />
+          <div class="input-with-prefix">
+          <span>https:
+          <input id="tiktok-edit" placeholder="username" />
+          </div>
+          </div>
 
-                <div class="social-input-group">
-                  <img src="platforms/spotify.png" alt="Spotify" />
-                  <div class="input-with-prefix">
-                    <span>https:
-                    <input id="spotify-edit" placeholder="artist id" />
-                  </div>
-                </div>
+          <div class="social-input-group">
+          <img src="platforms/spotify.png" alt="Spotify" />
+          <div class="input-with-prefix">
+          <span>https:
+          <input id="spotify-edit" placeholder="artist id" />
+          </div>
+          </div>
 
-                <div class="social-input-group">
-                  <img src="platforms/youtube.png" alt="YouTube" />
-                  <div class="input-with-prefix">
-                    <span>https:
-                    <input id="youtube-edit" placeholder="username" />
-                  </div>
-                </div>
+          <div class="social-input-group">
+          <img src="platforms/youtube.png" alt="YouTube" />
+          <div class="input-with-prefix">
+          <span>https:
+          <input id="youtube-edit" placeholder="username" />
+          </div>
+          </div>
 
-                <div class="social-input-group">
-                  <img src="platforms/instagram.png" alt="Instagram" />
-                  <div class="input-with-prefix">
-                    <span>https:
-                    <input id="instagram-edit" placeholder="username" />
-                  </div>
-                </div>
-              </div>
+          <div class="social-input-group">
+          <img src="platforms/instagram.png" alt="Instagram" />
+          <div class="input-with-prefix">
+          <span>https:
+          <input id="instagram-edit" placeholder="username" />
+          </div>
+          </div>
+          </div>
 
-              <div class="profile">
-                <div class="top-profile">
-                  <div class="userpfp">
-                    <img
-                      id="pfp-image"
-                      src="pfp.png"
-                      width="65px"
-                      height="65px"
-                    />
-                  </div>
-                  <div class="user">
-                    <div class="un">
-                      <h1 id="username-display">Username</h1>
-                      <div class="badges">
-                        <img
-                          id="verify-badge"
-                          class="verified"
-                          src="verified.png"
-                          width="20px"
-                          height="20px"
-                        />
-                        <img
-                          id="premium-badge"
-                          class="premium"
-                          src="premium.png"
-                          width="20px"
-                          height="20px"
-                        />
-                      </div>
-                    </div>
-                    <h2 class="friends">12 friends 0 mutual</h2>
-                  </div>
-                </div>
+          <div class="profile">
+          <div class="top-profile">
+          <div class="userpfp">
+          <img
+          id="pfp-image"
+          src="pfp.png"
+          width="65px"
+          height="65px"
+          />
+          </div>
+          <div class="user">
+          <div class="un">
+          <h1 id="username-display">Username</h1>
+          <div class="badges">
+          <img
+          id="verify-badge"
+          class="verified"
+          src="verified.png"
+          width="20px"
+          height="20px"
+          />
+          <img
+          id="premium-badge"
+          class="premium"
+          src="premium.png"
+          width="20px"
+          height="20px"
+          />
+          </div>
+          </div>
+          <h2 class="friends">12 friends 0 mutual</h2>
+          </div>
+          </div>
 
-                <div class="banner-wrapper">
-                  <img
-                    id="banner-image"
-                    class="banner"
-                    src="defbanner.png"
-                    height="170px"
-                    width="400px"
-                  />
-                  <div class="tag">ARTIST</div>
-                </div>
+          <div class="banner-wrapper">
+          <img
+          id="banner-image"
+          class="banner"
+          src="defbanner.png"
+          height="170px"
+          width="400px"
+          />
+          <div class="tag">ARTIST</div>
+          </div>
 
-                <div class="platforms">
-                  <a id="spotify-link" href="#"
-                    ><img
-                      src="platforms/spotify.png"
-                       width="55px"
-                        height="55px"
-                  /></a>
-                  <a id="youtube-link" href="#"
-                    ><img
-                      src="platforms/youtube.png"
-                       width="55px"
-                        height="55px"
-                  /></a>
-                  <a id="tiktok-link" href="#"
-                    ><img src="platforms/tiktok.png" width="55px" height="55px"
-                  /></a>
-                  <a id="instagram-link" href="#"
-                    ><img
-                      src="platforms/instagram.png"
-                      width="55px"
-                       height="55px"
-                  /></a>
-                </div>
+          <div class="platforms">
+          <a id="spotify-link" href="#"
+          ><img
+          src="platforms/spotify.png"
+          width="55px"
+          height="55px"
+          /></a>
+          <a id="youtube-link" href="#"
+          ><img
+          src="platforms/youtube.png"
+          width="55px"
+          height="55px"
+          /></a>
+          <a id="tiktok-link" href="#"
+          ><img src="platforms/tiktok.png" width="55px" height="55px"
+          /></a>
+          <a id="instagram-link" href="#"
+          ><img
+          src="platforms/instagram.png"
+          width="55px"
+          height="55px"
+          /></a>
+          </div>
 
-                <div class="bio">
-                  <p id="profile-description">
-                    Hello my name is officialhobberz im an artist from<br />England
-                    who is looking to make some music!
-                  </p>
-                </div>
+          <div class="bio">
+          <p id="profile-description">
+          Hello my name is officialhobberz im an artist from<br />England
+          who is looking to make some music!
+          </p>
+          </div>
 
-                
-              </div>
-            </div>
+
+          </div>
+          </div>
           </form>
-        </div>
+          </div>
 
-        <!-- Theme Settings -->
-        <div id="theme-content" class="settings-page">
-          
+          <div id="theme-content" class="settings-page">
+
 
           <div class="themes-container">
-            <!-- Free Themes -->
-            <div class="themes-section">
-              <h3>Free Themes</h3>
-              <div class="theme-cards" >
-                <div class="theme-card light-mode" data-theme="light">
-                  <div class="theme-circle light-circle"></div>
-                  <h4>LIGHT</h4>
-                  <p>
-                    Why would you choose this option. It is such an eyesore.
-                    Good luck!
-                  </p>
-                </div>
+          <div class="themes-section">
+          <h3>Free Themes</h3>
+          <div class="theme-cards" >
+          <div class="theme-card light-mode" data-theme="light">
+          <div class="theme-circle light-circle"></div>
+          <h4>LIGHT</h4>
+          <p>
+          Why would you choose this option. It is such an eyesore.
+          Good luck!
+          </p>
+          </div>
 
-                <div class="theme-card dark-mode" data-theme="dark" >
-                  
-                  <div class="theme-circle dark-circle"></div>
-                  <h4>DARK</h4>
-                  <p>
-                    See how beautiful this option is to read and to visualize.
-                    Pick Me!
-                  </p>
-                
-                </div>
+          <div class="theme-card dark-mode" data-theme="dark" >
 
-                  <div class="theme-card onyx-mode" data-theme="onyx" >
+          <div class="theme-circle dark-circle"></div>
+          <h4>DARK</h4>
+          <p>
+          See how beautiful this option is to read and to visualize.
+          Pick Me!
+          </p>
 
-                    <div class="theme-circle onyx-circle"></div>
-                    <h4>ONYX</h4>
-                    <p>
-                      This is the darkest option and also very clean. I wouldn’t
-                      be mad if you picked me!
-                    </p>
-                  </div>
-                
-              </div>
-           
-              <div class="themes-section">
-                <h3>Premium Themes</h3>
-                <div class="theme-cards premium">
-                  <div class="theme-card red-mode" data-theme="red">
-                    <div class="theme-circle red-circle"></div>
-                    <h4>RED</h4>
-                    <p>This is a premium theme only available to paid members.</p>
-                  </div>
-                  <div class="theme-card green-mode" data-theme="green">
-                    <div class="theme-circle green-circle"></div>
-                    <h4>GREEN</h4>
-                    <p>This is a premium theme only available to paid members.</p>
-                  </div>
-                  <div class="theme-card pink-mode" data-theme="pink">
-                    <div class="theme-circle pink-circle"></div>
-                    <h4>PINK</h4>
-                    <p>This is a premium theme only available to paid members.</p>
-                  </div>
-                  <div class="theme-card purple-mode" data-theme="purple">
-                    <div class="theme-circle purple-circle"></div>
-                    <h4>PURPLE</h4>
-                    <p>This is a premium theme only available to paid members.</p>
-                  </div>
-                  <div class="theme-card blue-mode" data-theme="blue">
-                    <div class="theme-circle blue-circle"></div>
-                    <h4>BLUE</h4>
-                    <p>This is a premium theme only available to paid members.</p>
-                  </div>
-                </div>
-              </div>
-            <!-- Premium Themes -->
+          </div>
 
+          <div class="theme-card onyx-mode" data-theme="onyx" >
+
+          <div class="theme-circle onyx-circle"></div>
+          <h4>ONYX</h4>
+          <p>
+          This is the darkest option and also very clean. I wouldn’t
+          be mad if you picked me!
+          </p>
+          </div>
+
+          </div>
+
+          <div class="themes-section">
+          <h3>Premium Themes</h3>
+          <div class="theme-cards premium">
+          <div class="theme-card red-mode" data-theme="red">
+          <div class="theme-circle red-circle"></div>
+          <h4>RED</h4>
+          <p>This is a premium theme only available to paid members.</p>
+          </div>
+          <div class="theme-card green-mode" data-theme="green">
+          <div class="theme-circle green-circle"></div>
+          <h4>GREEN</h4>
+          <p>This is a premium theme only available to paid members.</p>
+          </div>
+          <div class="theme-card pink-mode" data-theme="pink">
+          <div class="theme-circle pink-circle"></div>
+          <h4>PINK</h4>
+          <p>This is a premium theme only available to paid members.</p>
+          </div>
+          <div class="theme-card purple-mode" data-theme="purple">
+          <div class="theme-circle purple-circle"></div>
+          <h4>PURPLE</h4>
+          <p>This is a premium theme only available to paid members.</p>
+          </div>
+          <div class="theme-card blue-mode" data-theme="blue">
+          <div class="theme-circle blue-circle"></div>
+          <h4>BLUE</h4>
+          <p>This is a premium theme only available to paid members.</p>
+          </div>
+          </div>
+          </div>
           <button class="save-btn">SAVE CHANGES</button>
-        </div>
+          </div>
 
-        <div id="video-content" class="settings-page">
+          <div id="video-content" class="settings-page">
           <h2>Video Settings</h2>
           <p>Adjust video quality and preferences.</p>
           <label for="quality">Quality:</label>
           <select id="quality" name="quality">
-            <option value="auto">Auto</option>
-            <option value="1080p">1080p</option>
-            <option value="720p">720p</option>
+          <option value="auto">Auto</option>
+          <option value="1080p">1080p</option>
+          <option value="720p">720p</option>
           </select>
-        </div>
+          </div>
 
-        <div id="premium-content" class="settings-page">
+          <div id="premium-content" class="settings-page">
           <h2>Premium Settings</h2>
           <p>View your premium subscription status.</p>
           <p>You are not currently subscribed to Premium.</p>
           <button>Upgrade Now</button>
-        </div>
+          </div>
 
-        <div id="blocked-content" class="settings-page">
+          <div id="blocked-content" class="settings-page">
           <h2>Blocked Users</h2>
           <p>Manage your list of blocked users.</p>
           <ul>
-            <li>User 1</li>
-            <li>User 2</li>
+          <li>User 1</li>
+          <li>User 2</li>
           </ul>
-        </div>
+          </div>
 
-        <div id="privacy-content" class="settings-page">
+          <div id="privacy-content" class="settings-page">
           <h2>Privacy Settings</h2>
           <p>Control your privacy options.</p>
           <label><input type="checkbox" /> Make my profile private</label><br />
           <label><input type="checkbox" /> Allow friend requests</label>
-        </div>
+          </div>
 
-        <div id="updates-content" class="settings-page">
+          <div id="updates-content" class="settings-page">
           <h2>Updates</h2>
           <p>Check for new features and updates.</p>
           <p>Your software is up to date.</p>
-        </div>
-      </div>
-    </main>
+          </div>
+          </div>
+          </main>
+
 
     <script src="env-config.js" type="module"></script>
     <script src="database.js"></script>

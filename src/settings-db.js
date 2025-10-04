@@ -1,30 +1,44 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
+  // ---------- THEME LOGO UPDATE ----------
   function updateSettingsLogo() {
-      const theme = document.body.getAttribute("data-theme");
-      const logo = document.getElementById("logo-img");
-      if (logo) {
-          logo.src = (theme === "dark" || theme === "onyx" || theme === "red" || theme === "blue" || theme === "purple" || theme === "green" || theme === "pink") 
-              ? "icons/logo.png"
-              : "icons/logo-light.png";
-      }
+    const theme = document.body.getAttribute("data-theme");
+    const logo = document.getElementById("logo-img");
+    if (logo) {
+      logo.src = ["dark", "onyx", "red", "blue", "purple", "green", "pink"].includes(theme)
+        ? "icons/logo.png"
+        : "icons/logo-light.png";
+    }
   }
 
   updateSettingsLogo();
-
-  const observer = new MutationObserver(() => updateSettingsLogo());
+  const observer = new MutationObserver(updateSettingsLogo);
   observer.observe(document.body, { attributes: true, attributeFilter: ["data-theme"] });
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (!session) {
-    alert("No session found! Redirecting...");
-    window.location.href = "login.html";
+
+  // ---------- WAIT FOR SUPABASE CLIENT ----------
+  let attempts = 0;
+  while (!window.supabaseClient && attempts < 40) { // up to 2 seconds
+    await new Promise(resolve => setTimeout(resolve, 50));
+    attempts++;
+  }
+  if (!window.supabaseClient) {
+    console.error("❌ Supabase client not initialized");
     return;
   }
 
+  // ---------- GET CURRENT USER SESSION ----------
+  const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+  if (sessionError || !session) {
+    console.error("No active session. User must log in.");
+    window.location.href = "login.html"; // redirect if not logged in
+    return;
+  }
   const user = session.user;
+
   let newPfpFile = null;
   let newBannerFile = null;
 
+  // ---------- LOAD PROFILE ----------
   async function loadProfile() {
     const { data: profile, error } = await supabaseClient
       .from("profiles")
@@ -37,6 +51,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // Tags
     const tagDropdown = document.getElementById("tag-dropdown");
     tagDropdown.innerHTML = "";
     const tags = ["Artist", "Producer", "Engineer", "Manager", "Composer", "Recruiter"];
@@ -44,24 +59,27 @@ document.addEventListener("DOMContentLoaded", async () => {
       const option = document.createElement("option");
       option.value = tag;
       option.textContent = tag;
-      if (profile.tag && profile.tag.toLowerCase() === tag.toLowerCase()) option.selected = true;
+      if (profile.tag?.toLowerCase() === tag.toLowerCase()) option.selected = true;
       tagDropdown.appendChild(option);
     });
 
+    // Profile info
     document.getElementById("navbar-username").textContent = `SoundLink - ${profile.username || "Unknown User"}`;
     document.getElementById("username-display").textContent = profile.username || "Unknown User";
     document.getElementById("pfp-image").src = profile.profile_picture || "pfp.png";
     document.getElementById("banner-image").src = profile.banner || "defbanner.png";
     document.querySelector(".tag").textContent = profile.tag || "ARTIST";
-    document.getElementById("verify-badge").style.display = profile.is_verified ? "inline" : "none";
-    document.getElementById("premium-badge").style.display = profile.is_premium ? "inline" : "none";
+    document.getElementById("verify-badge").style.display = profile.verified ? "inline" : "none";
+    document.getElementById("premium-badge").style.display = profile.premium ? "inline" : "none";
     document.getElementById("profile-description").innerHTML = profile.description || "No bio yet.";
 
+    // Social links
     document.getElementById("spotify-link").href = profile.spotify || "#";
     document.getElementById("youtube-link").href = profile.youtube || "#";
     document.getElementById("tiktok-link").href = profile.tiktok || "#";
     document.getElementById("instagram-link").href = profile.instagram || "#";
 
+    // Inputs
     const stripPrefix = (url, prefix) => url?.startsWith(prefix) ? url.slice(prefix.length) : url || "";
     document.getElementById("username-edit").value = profile.username || "";
     document.getElementById("bio-edit").value = profile.description || "";
@@ -70,6 +88,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("youtube-edit").value = stripPrefix(profile.youtube, "https://youtube.com/@");
     document.getElementById("instagram-edit").value = stripPrefix(profile.instagram, "https://instagram.com/");
 
+    // Previews
     document.getElementById("pfp-preview").src = profile.profile_picture || "pfp.png";
     document.getElementById("banner-preview").src = profile.banner || "defbanner.png";
   }
@@ -77,42 +96,54 @@ document.addEventListener("DOMContentLoaded", async () => {
   await loadProfile();
 
   const loadingOverlay = document.getElementById("loading-overlay");
-  if (loadingOverlay) loadingOverlay.style.display = "none";
 
+  if (loadingOverlay) {
+
+      loadingOverlay.classList.add('fade-out');
+
+      loadingOverlay.addEventListener('animationend', (e) => {
+
+          if (e.animationName === 'overlayFadeOut') {
+              loadingOverlay.remove(); 
+          }
+      }, { once: true });
+  }
+
+  // ---------- FILE UPLOAD HANDLERS ----------
   document.getElementById("pfp-upload").addEventListener("change", (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const img = new Image();
-      img.onload = () => {
-        if (img.width !== img.height) {
-          alert("Profile picture must be square!");
-          e.target.value = "";
-          return;
-        }
-        newPfpFile = file;
-        document.getElementById("pfp-preview").src = URL.createObjectURL(file);
-      };
-      img.src = URL.createObjectURL(file);
-    }
+    if (!file) return;
+
+    const img = new Image();
+    img.onload = () => {
+      if (img.width !== img.height) {
+        alert("Profile picture must be square!");
+        e.target.value = "";
+        return;
+      }
+      newPfpFile = file;
+      document.getElementById("pfp-preview").src = URL.createObjectURL(file);
+    };
+    img.src = URL.createObjectURL(file);
   });
 
   document.getElementById("banner-upload").addEventListener("change", (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const img = new Image();
-      img.onload = () => {
-        const requiredRatio = 400 / 170;
-        const actualRatio = img.width / img.height;
-        if (Math.abs(actualRatio - requiredRatio) > 0.05) {
-          alert("Banner must match the required aspect ratio (400x170).");
-          e.target.value = "";
-          return;
-        }
-        newBannerFile = file;
-        document.getElementById("banner-preview").src = URL.createObjectURL(file);
-      };
-      img.src = URL.createObjectURL(file);
-    }
+    if (!file) return;
+
+    const img = new Image();
+    img.onload = () => {
+      const requiredRatio = 400 / 170;
+      const actualRatio = img.width / img.height;
+      if (Math.abs(actualRatio - requiredRatio) > 0.05) {
+        alert("Banner must match the required aspect ratio (400x170).");
+        e.target.value = "";
+        return;
+      }
+      newBannerFile = file;
+      document.getElementById("banner-preview").src = URL.createObjectURL(file);
+    };
+    img.src = URL.createObjectURL(file);
   });
 
   const usernameInput = (id, prefix) => {
@@ -120,6 +151,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     return val ? `${prefix}${val}` : null;
   };
 
+  // ---------- PROFILE FORM SUBMIT ----------
   document.getElementById("profile-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -203,4 +235,5 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Error uploading files: " + err.message);
     }
   });
+
 });
