@@ -53,7 +53,7 @@
      object-fit: cover;
      background: transparent;
      opacity: 0; 
-     animation: logoFadeIn 1s ease-in-out forwards; 
+     animation: logoFadeIn 0.7s ease-in-out forwards; 
      }
 
      .fade-out {
@@ -98,26 +98,10 @@
 
 
              </div>
-           </div>
-         </aside>
+          
 
          <section class="chat-section">
-           <button id="scroll-to-bottom" style="
-             position: absolute;
-             bottom: 100px;
-             
-             right: 32%;
-             display: none;
-             padding: 10px 15px;
-             border-radius: 25px;
-             background-color: var(--card-border);
-             color: var(--text-color);
-             font-weight: bold;
-             border: none;
-             cursor: pointer;
-             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-             z-index: 100;
-           ">Scroll to bottom</button>
+           <button id="scroll-to-bottom" >Scroll to bottom</button>
 
            <div id="chat-container" style="display: none;">
             
@@ -125,18 +109,119 @@
                <img id="chat-header-img" src="icons/default-avatar.png" alt="Profile">
                <h2 id="chat-header-username"></h2>
                <span id="chat-header-badges"></span> 
+               <button id="remove-friend-btn">Remove Friend</button>
              </div>
+
 
              <div id="chat-messages"></div>
         
              <div id="chat-input">
                <input type="text" id="chat-message-input" placeholder="Type a message...">
                <input type="file" id="file-upload" style="display:none;" />
-               <button id="upload-btn">upload</button>
+               <button id="upload-btn">Upload</button>
+               <button id="gif-btn">GIF</button> <!-- new button -->
                <button id="chat-send-btn">Send</button>
              </div>
+
            </div>
          </section>
+        <div id="friend-requests-popup">
+          <h2 style="text-align: center; margin-bottom: 15px;">Friend Requests</h2>
+          <div id="friend-requests-list">
+            <!-- Requests will be rendered here -->
+          </div>
+          <button id="close-requests-popup">Close</button>
+        </div>
+        <!-- Add Friend Popup -->
+        <div id="add-friend-popup">
+          <h2 style="text-align: center; margin-bottom: 15px;">Add a Friend</h2>
+          <input id="friend-username-input" type="text" placeholder="Enter username">
+          <p id="add-friend-error" style="color:red; margin-bottom:12px;"></p>
+          <div style="display: flex; justify-content: space-between;">
+            <button id="send-friend-request-btn">Send Request</button>
+            <button id="close-add-friend-popup">Cancel</button>
+          </div>
+        </div>
+        <div id="gif-picker" style="
+              display: none;
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              width: 400px;
+              max-height: 500px;
+              overflow-y: auto;
+              background-color: var(--card-bg);
+              border: 2px solid var(--card-border);
+              border-radius: 15px;
+              padding: 15px;
+              z-index: 10002;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            ">
+
+          <button id="close-gif-picker" style="
+                position: absolute;
+                top: 10px;
+                right: 10px;
+                padding: 4px 10px;
+                border: none;
+                border-radius: 50%;
+                background-color: var(--button-bg, #3b82f6);
+                color: white;
+                font-weight: bold;
+                font-size: 16px;
+                cursor: pointer;
+              ">X</button>
+
+          <input type="text" id="gif-search" placeholder="Search GIFs..." style="
+                width: 100%;
+                padding: 8px;
+                margin-bottom: 10px;
+                border-radius: 8px;
+                border: 1px solid var(--card-border);
+              " />
+
+          <div id="gif-results" style="display:flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;"></div>
+        </div>
+
+
+        <div id="profile-card-popup" class="profile" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10003; width: 450px; max-height: 80vh; overflow-y: auto; background-color: var(--card-bg);">
+          <button id="close-profile-card" style="position: absolute; top: 10px; right: 10px; padding: 4px 10px; border: none; border-radius: 50%; background-color: var(--button-bg); color: white; font-weight: bold; font-size: 16px; cursor: pointer;">X</button>
+
+          <div class="top-profile">
+            <div class="userpfp">
+              <img id="pfp-image" src="icons/default-avatar.png" width="65px" height="65px" />
+            </div>
+            <div class="user">
+              <div class="un">
+                <h1 id="username-display">Username</h1>
+                <div class="badges" id="profile-badges"></div>
+              </div>
+              <h2 class="friends" id="friend-count">Friends: 0</h2>
+            </div>
+          </div>
+
+          <div class="banner-wrapper">
+            <img id="banner-image" class="banner" src="defbanner.png" />
+            <div class="tag" id="profile-tag">ARTIST</div>
+          </div>
+
+          <div class="platforms" id="profile-platforms"></div>
+
+          <div class="bio">
+            <p id="profile-description"></p>
+          </div>
+
+          <div class="add-and-more">
+            <div class="add">
+              <button id="addFriendButton">Add Friend</button>
+            </div>
+            <div class="more">
+              <h1>•••</h1>
+            </div>
+          </div>
+        </div>
+
 
       </main>
 

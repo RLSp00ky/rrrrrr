@@ -20,7 +20,8 @@ class EnvConfig {
       SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
       SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
       TURN_USERNAME: import.meta.env.VITE_TURN_USERNAME,
-      TURN_CREDENTIAL: import.meta.env.VITE_TURN_CREDENTIAL
+      TURN_CREDENTIAL: import.meta.env.VITE_TURN_CREDENTIAL,
+      GIF_API: import.meta.env.VITE_GIF_API
     };
   }
 

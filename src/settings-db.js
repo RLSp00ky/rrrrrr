@@ -1,39 +1,46 @@
-document.addEventListener("DOMContentLoaded", async () => {
+  const cachedTheme = localStorage.getItem("user-theme");
+  if (cachedTheme) {
+    document.documentElement.setAttribute("data-theme", cachedTheme);
+  }
 
-  // ---------- THEME LOGO UPDATE ----------
-  function updateSettingsLogo() {
-    const theme = document.body.getAttribute("data-theme");
-    const logo = document.getElementById("logo-img");
-    if (logo) {
-      logo.src = ["dark", "onyx", "red", "blue", "purple", "green", "pink"].includes(theme)
-        ? "icons/logo.png"
-        : "icons/logo-light.png";
+  document.addEventListener("DOMContentLoaded", async () => {
+
+    // ---------- THEME LOGO UPDATE ----------
+    function updateSettingsLogo() {
+      const theme = document.documentElement.getAttribute("data-theme"); // FIXED
+      const logo = document.getElementById("logo-img");
+      if (logo) {
+        logo.src = ["dark", "onyx", "red", "blue", "purple", "green", "pink"].includes(theme)
+          ? "icons/logo.png"
+          : "icons/logo-light.png";
+      }
     }
-  }
 
-  updateSettingsLogo();
-  const observer = new MutationObserver(updateSettingsLogo);
-  observer.observe(document.body, { attributes: true, attributeFilter: ["data-theme"] });
+    updateSettingsLogo();
 
-  // ---------- WAIT FOR SUPABASE CLIENT ----------
-  let attempts = 0;
-  while (!window.supabaseClient && attempts < 40) { // up to 2 seconds
-    await new Promise(resolve => setTimeout(resolve, 50));
-    attempts++;
-  }
-  if (!window.supabaseClient) {
-    console.error("❌ Supabase client not initialized");
-    return;
-  }
+    // FIX: observe <html>, not <body>
+    const observer = new MutationObserver(updateSettingsLogo);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  // ---------- GET CURRENT USER SESSION ----------
-  const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
-  if (sessionError || !session) {
-    console.error("No active session. User must log in.");
-    window.location.href = "login.html"; // redirect if not logged in
-    return;
-  }
-  const user = session.user;
+    // ---------- WAIT FOR SUPABASE CLIENT ----------
+    let attempts = 0;
+    while (!window.supabaseClient && attempts < 40) {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      attempts++;
+    }
+    if (!window.supabaseClient) {
+      console.error("❌ Supabase client not initialized");
+      return;
+    }
+
+    // ---------- GET CURRENT USER SESSION ----------
+    const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError || !session) {
+      console.error("No active session. User must log in.");
+      window.location.href = "login.html";
+      return;
+    }
+    const user = session.user;
 
   let newPfpFile = null;
   let newBannerFile = null;

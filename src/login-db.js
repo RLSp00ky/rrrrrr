@@ -150,17 +150,7 @@
         return;
       }
 
-      // Auto-friend with self on signup
-      const { error: friendError } = await supabaseClient
-        .from('friends')
-        .insert([{
-          requester_id: user.id,
-          receiver_id: user.id,
-          status: "accepted"
-        }], { upsert: true });
-
-      if (friendError) console.warn("Self-friend insert error:", friendError.message);
-
+    
       createMessageBox("Signup successful! You can now sign in.", "success");
       container.classList.remove("right-panel-active");
     });

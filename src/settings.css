@@ -1010,3 +1010,96 @@ html {
     color: white;
 }
 
+
+/* Account Settings Form Styling */
+.settings-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  padding: 20px;
+  height: 100%;
+  overflow: hidden;
+}
+
+.settings-page h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.settings-page p {
+  font-size: 14px;
+  opacity: 0.8;
+  margin-bottom: 20px;
+}
+
+.account-grid {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  gap: 20px;
+  width: 100%;
+  max-width: 1200px;
+  flex-wrap: wrap;
+}
+
+.account-card {
+  background: #2a1044;
+  border: 2px solid #8e3ce9;
+  border-radius: 20px;
+  padding: 20px;
+  flex: 1;
+  min-width: 280px;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.account-card h3 {
+  text-align: center;
+  margin-bottom: 15px;
+  color: #c79cff;
+}
+
+.account-card label {
+  font-size: 14px;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.account-card input {
+  width: 100%;
+  padding: 8px 10px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #3a1b60;
+  color: #fff;
+}
+
+.account-card button {
+  width: 100%;
+  background-color: #a34eff;
+  border: none;
+  padding: 10px;
+  border-radius: 12px;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.account-card button:hover {
+  background-color: #c27bff;
+}
+
+.delete-btn {
+  background-color: #ff4e4e;
+}
+
+.delete-btn:hover {
+  background-color: #ff7070;
+}
+
+
