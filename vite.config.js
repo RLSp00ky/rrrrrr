@@ -11,6 +11,8 @@ export default defineConfig({
   publicDir: '../public',
   server: {
     port: 5000,
+    host: true,
+    allowedHosts: true,
     configureServer(server) {
       // Handle /index.html the same as /
       server.middlewares.use('/index.html', (req, res, next) => {
