@@ -108,15 +108,15 @@ export default defineConfig({
             searchingClients.delete(partnerId)
             
             ws.send(JSON.stringify({ 
-              type: 'matched', 
-              partnerId: clientUsers.get(partnerId),
-              isInitiator: true 
+              type: 'peerFound', 
+              peerId: clientUsers.get(partnerId),
+              isCaller: true 
             }))
             
             partnerWs.send(JSON.stringify({ 
-              type: 'matched', 
-              partnerId: userId,
-              isInitiator: false 
+              type: 'peerFound', 
+              peerId: userId,
+              isCaller: false 
             }))
           }
         }
