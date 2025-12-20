@@ -375,15 +375,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        console.log("🔧 Socket initialization starting...");
+        console.log("📍 Location origin:", location.origin);
+        console.log("📍 Location protocol:", location.protocol);
+        
         let wsUrl = location.origin.replace(/^http/, "ws");
         if (location.protocol === "https:") {
             wsUrl = wsUrl.replace("ws://", "wss://");
         }
+        
+        console.log("🔗 Attempting to connect to WebSocket URL:", wsUrl);
         socket = new WebSocket(wsUrl);
+        console.log("⏳ WebSocket object created, waiting for connection...");
 
         socket.onopen = () => {
             const currentUser = authManager.getCurrentUser();
-            console.log("🔌 Connected to signaling server as user:", currentUser?.id);
+            console.log("✅ SOCKET CONNECTED! 🔌 Connected to signaling server as user:", currentUser?.id);
+            console.log("🔌 Socket ready state on open:", socket.readyState);
 
             startSearch();
         };
@@ -394,11 +402,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         };
 
         socket.onerror = (err) => {
-            console.error("⚠️ WebSocket error:", err);
+            console.error("❌ WebSocket error:", err);
+            console.error("📊 Socket ready state:", socket.readyState);
+            console.error("📊 Socket URL was:", wsUrl);
 
             if (!authManager.isAuthenticated()) {
                 console.error("❌ Socket error may be due to authentication failure");
-
             }
         };
 
