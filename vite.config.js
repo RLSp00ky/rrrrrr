@@ -93,13 +93,18 @@ export default defineConfig({
       })
 
       function handleSearch(clientId, ws, userId) {
+        console.log(`🔍 Search request from ${clientId} (userId: ${userId}), searching clients: ${searchingClients.size}`)
         if (searchingClients.size === 0) {
           searchingClients.add(clientId)
           clientUsers.set(clientId, userId)
+          console.log(`⏳ No other users searching, ${clientId} added to waiting list`)
           ws.send(JSON.stringify({ type: 'searching' }))
         } else {
           const partnerId = Array.from(searchingClients)[0]
           const partnerWs = clients.get(partnerId)
+          const partnerUserId = clientUsers.get(partnerId)
+          
+          console.log(`✅ Match found! ${clientId} matched with ${partnerId}`)
           
           if (partnerWs && partnerWs.readyState === 1) {
             partnerships.set(clientId, partnerId)
@@ -107,17 +112,21 @@ export default defineConfig({
             
             searchingClients.delete(partnerId)
             
+            console.log(`📤 Sending peerFound to ${clientId} with peerId ${partnerUserId}`)
             ws.send(JSON.stringify({ 
               type: 'peerFound', 
-              peerId: clientUsers.get(partnerId),
+              peerId: partnerUserId,
               isCaller: true 
             }))
             
+            console.log(`📤 Sending peerFound to ${partnerId} with peerId ${userId}`)
             partnerWs.send(JSON.stringify({ 
               type: 'peerFound', 
               peerId: userId,
               isCaller: false 
             }))
+          } else {
+            console.log(`⚠️ Partner WebSocket not ready, state: ${partnerWs?.readyState}`)
           }
         }
       }
